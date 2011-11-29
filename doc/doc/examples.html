@@ -1,0 +1,539 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html>
+<head>
+  <meta http-equiv="Content-Language" content="en-us">
+  <meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+  <link rel="stylesheet" type="text/css" href="../../../boost.css">
+
+  <title>Container_bptree - examples</title>
+</head>
+
+<body link="#0000FF" vlink="#800080">
+  <table border="0" cellpadding="7" cellspacing="0" width="100%" summary=
+  "header">
+    <tr>
+      <td valign="top" width="300">
+        <h3><a href="../../../index.htm"><img height="86" width="277" alt=
+        "C++ Boost" src="images/boost.png" border="0"></a></h3>
+      </td>
+
+      <td valign="top">
+        <h1 align="center">Container_bptree</h1>
+
+        <h2 align="center">Examples</h2>
+      </td>
+    </tr>
+  </table>
+  <hr>
+  <div align="right">
+    <a href="containers.html"><img src="images/prev.png" border=0 alt="Prev"></a>  
+    <a href="../index.html"><img src="images/up.png" border=0 alt="Up"></a>
+    <a href="../index.html"><img src="images/home.png" border=0 alt="Home"></a>
+    <a href="differences.html"><img src="images/next.png" border=0 alt="Next"></a>    
+  </div> 
+
+    <p>This section includes a number of practically useful applications of new data 
+    structures and algorithms of the namespace <code>container_bptree</code>. These 
+    applications are less trivial than the calculation of the mean value discussed in 
+    the previous section. Despite the complications, the new containers help develop 
+    effective and relatively simple solutions. The aim of this section is to show 
+    how to reduce the complexity of solutions in specific applications.
+    </p>
+    <p>In order to simplify the demo code and focus on the main features of algorithms 
+    using new data structures, the data members of classes specific to problem domains 
+    are of type <code>int</code>. The algorithms operating with integral types take 
+    advantage of precise values and use relational and equality operators without 
+    a tolerance parameter. In practical applications, data types and operations 
+    can be parameterized to support generic solutions.     
+    </p>
+    <h3>Fast counting of intersections of one interval with sequence of intervals 
+    </h3>  
+    <p>The example in file &quot;interval.cpp&quot; demonstrates how to use new associative 
+    containers with random access iterators to find the total number of intersections 
+    between an input interval and a sequence of intervals. 
+    </p>
+    <p>The main advantage of the algorithm developed for this example is its low computational cost. 
+    It finds any number of intersections in <i>O(log N)</i> time, where <i>N</i> is the number of 
+    intervals in a sequence. Note that this algorithm does not return a result list with all 
+    intersected intervals. This is a different problem. An algorithm for this problem has 
+    the computational cost of at least the number of intersections, which can be much greater 
+    than <i>O(log N)</i>. 
+    </p>
+    <p>The algorithm of this example has been developed for semi-open intervals with 
+    endpoints <code>[a, b)</code>, <code>a<=b</code>:
+    </p>
+    <pre>
+    class Interval 
+    {
+    public:
+        explicit 
+        Interval ( int  _a=0 , int  _b=0 ) : a ( _a ) , b ( _b ) 
+        {
+            if ( b < a ) std::swap ( a , b ) ; 
+        }         
+        
+        int     A ( ) const { return a ; } 
+        int     B ( ) const { return b ; } 
+
+    private:
+        int     a ; 
+        int     b ; 
+    } ;    
+</pre>
+    <p>The type <code>VectInterval</code> 
+    </p>
+    <pre>
+    typedef std::vector&lt;Interval&gt;   VectInterval ;
+</pre> 
+    <p>represents a collection of intervals. In generic algorithms a collection, such as 
+    <code>VectInterval</code>, can store either unordered or ordered objects of any size 
+    and any type, provided that each object represents an interval. 
+    </p>
+    <p>In order to test the correctness of the new efficient algorithm, the example 
+    includes linear algorithm of counting of intersections of intervals 
+    </p>
+    <pre>
+    int  CountIntersections 
+    ( 
+        Interval const &        interval_x  , 
+        VectInterval const &    vect_interval
+    ) ;
+</pre>
+    <p>For the method of linear counting, a result of the intersection of two arbitrary 
+    intervals is determined by the function: 
+    </p>
+    <pre>
+    bool Intersect ( Interval const &  x , Interval const &  y ) 
+    {
+        return ( x.A() < y.B() ) && ( y.A() < x.B() ) ; 
+    }
+</pre>
+    <p>The method of fast counting of all intersections between an input interval and a sequence 
+    of intervals is based on a simple fact. The total number of intervals in the sequence is 
+    equal to the sum of two numbers of intervals that intersect and do not intersect input 
+    interval <code>x</code>. For semi-open intervals with endpoints <code>[a, b)</code>, 
+    the total number of intersections <code>n_x</code> can be calculated by the formula: 
+    </p>
+    <pre>
+	n_x = n - n_a - n_b ;     
+</pre>
+    <p>where <code>n</code> is the total number of intervals in the sequence, <code>n_a</code> 
+    is the number of intervals in the sequence with upper endpoint <code>b</code> 
+    such that <code>( i.b <= x.a )</code>, <code>n_b </code> is the number of intervals in 
+    the sequence with lower endpoint <code>a</code> such that <code>( i.a >= x.b )</code>. 
+    Both <code>n_a</code> and <code>n_b</code> are the numbers of intervals that do not 
+    intersect input interval <code>x</code>.
+    </p>
+    <p>The efficiency of this method is defined by the efficiency of the calculation of values of 
+    <code>n_a</code> and <code>n_b</code>, since the total number of intervals in a sequence
+    <code>n</code> is obtained in constant time. 
+    </p>
+    <p>If the intervals and their endpoints are stored in unordered containers, the required numbers 
+    <code>n_a</code> and <code>n_b</code> can be obtained in linear time only. 
+    In order to improve the performance, the method uses two ordered sequences: the first one stores 
+    the lower endpoints from every interval, while the second one stores the upper endpoints. 
+    The ordered sequences support the search for boundaries of subsets of intervals with 
+    logarithmic time. The calculation of <code>n_a</code> and <code>n_b</code> through random access 
+    iterators pointing to the boundaries of the subsets has constant cost. This is why the performance 
+    of this method is logarithmic in the worst case and does not depend on the total number of 
+    intersections of intervals. 
+    </p>
+    <p>The namespace <code>container_bptree</code> offers associative containers with random access 
+    iterators required for the implementation of the fast counting of intersections of intervals. 
+    The type <code>MultiSet</code> 
+    </p>
+    <pre>
+    typedef container_bptree::multiset&lt;int&gt; MultiSetInt ;    
+</pre>
+    <p>represents a collection of intervals ordered by the lower or upper endpoint of an interval. 
+    In practical applications, a container, such as <code>MultiSet</code>, can store light weight 
+    objects associated with heavy weight objects representing intervals.
+    </p>
+    <p>The STL facilities of the associative containers of the namespace <code>container_bptree</code>
+    are particularly effective in the fast counting of intersections. These containers support 
+    logarithmic search for boundaries of required subsets through member functions 
+    <code>lower_bound()</code> and <code>upper_bound()</code> along with constant time counting of
+    intervals in these subsets through random access iterators. The efficient algorithm of counting of 
+    intersections with logarithmic running time is implemented in the method: 
+    </p>
+    <pre>
+    int  CountIntersections
+        (
+            Interval const &        interval_x  ,
+            MultiSetInt const &     mset_a      ,
+            MultiSetInt const &     mset_b
+        )
+    {
+        int     n     = mset_a . size ( ) ;
+        int     n_a   = mset_b . upper_bound ( interval_x.A() ) - 
+                        mset_b . begin ( ) ;
+        int     n_b   = mset_a . end ( ) - 
+                        mset_a . lower_bound ( interval_x.B() ) ;
+        int     count = n - n_a - n_b ;
+        return  count ;
+    }
+</pre>
+    <p>The functionality of the example algorithm of the fast counting of intersections of intervals 
+    can be extended for advanced applications. This can be achieved through associative containers 
+    of the namespace <code>container_bptree</code>, which support both random access iterators and 
+    the efficient algorithm <code>accumulate()</code>. For any required subset of intervals, 
+    an algorithm based on these containers can obtain not only the number of intervals, but also 
+    the total time, the mean value and standard deviation. The computational cost of obtaining of 
+    all of these parameters is logarithmic. 
+    </p>
+    <h3>Examples using fast algorithm <cod>accumulate()</code> 
+    </h3>  
+    <p>The rest of this section discusses several practical applications of sequences based on the 
+    class <code>bptree_idx_acc</code> of the namespace <code>container_bptree</code>. 
+    These examples demonstrate that STL variants of containers with random access iterators 
+    and the efficient algorithm <code>accumulate()</code> provide the most advanced and 
+    very efficient facilities for analysis of data. 
+    </p>
+    <p>The common feature of the examples using fast algorithm <code>accumulate()</code> 
+    is the calculation of sums and mean values of several parameters of a sequence of objects. 
+    In these applications, the most straightforward method is to create a container with the fast 
+    algorithm <code>accumulate()</code> for every parameter to be processed by a user algorithm. 
+    </p>
+    <p>The examples demonstrate how to solve a problem using only one container for all parameters 
+    to be summed up in a user algorithm. In many practical applications, this can be achieved with 
+    a user defined type, which stores values of all parameters required in the algorithm. The method 
+    based on a single container with a user defined type for all parameters provides at least 
+    two advantages: optimized space usage and improved structure of a user algorithm. 
+    </p>
+    <p>The demo code shows how this method works with containers of the namespace 
+    <code>container_bptree</code> using both the efficient and the standard algorithm 
+    <code>accumulate()</code>. The results of these algorithms are compared to test the 
+    correctness of the implementation. 
+    </p>
+    <p>All example algorithms based on containers of the namespace <code>container_bptree</code> 
+    with the efficient algorithm <code>accumulate()</code> have the same theoretical performance. 
+    In every example, a value of a sum is calculated in logarithmic time and a number of elements 
+    within a specified range - in constant time.     
+    </p>
+    <h3>Mean values of parameters of rectangles and numerical integration
+    </h3>
+    <p>
+    The code in file "rectangle_area.cpp" demonstrates how to use the fast algorithm 
+    <code>accumulate()</code> to calculate sums and mean values of several parameters of 
+    a sequence of rectangles: the width, length, perimeter and area. This example includes 
+    the numerical integration as a particular case. 
+    </p>
+    <p>        
+    In the group of examples using one container with the efficient summation algorithm, 
+    this example is the most advanced and illustrative in terms of implementation details. 
+    This is why it is given the most detailed consideration and explanation.
+    </p>
+    <p>The class <code>RectArea</code> has three data members to store and calculate sums of 
+    all required parameters: 
+    </p>
+    <pre>
+    class RectArea 
+    {
+    ...
+        int     width  ; 
+        int     length ; 
+        int     area   ; 
+    } ;
+    </pre>
+    <p>The width and length of a rectangle must be provided by a user algorithm. The area of 
+    the rectangle is calculated automatically using the provided values of the width and length. 
+    Storing the area value is an important detail of this programming solution. In many similar 
+    applications involving the processing of rectangles, it is sufficient to store in the class 
+    <code>Rectangle</code> values of only two independent attributes: 
+    </p>
+    <pre>
+    class Rectangle 
+    {
+    ...
+        double      length ; 
+        double      width  ; 
+        double      Area ( ) const { return length*width ; } 
+    } ;
+    </pre>
+    <p>The value of the derived attribute area can be calculated in constant time using the length 
+    and width of the rectangle. Within this alternative approach, the area value is not stored 
+    in order to save space. 
+    </p>
+    <p>The list of data members of the class <code>RectArea</code> cannot be reduced to two independent 
+    parameters only if a user algorithm calculates the sum of areas. In the general case, this value 
+    cannot be obtained from the sums of the lengths and widths. On the other hand, the sum and mean 
+    value of the perimeter can be calculated using the length and width sums. Thus this parameter 
+    does not require a special data member in the class <code>RectArea</code>. 
+    </p>
+    <p>When specifying the interface of the class <code>RectArea</code>, it is necessary to define 
+    a number of arithmetic operators. A B+ tree supporting the efficient algorithm <code>accumulate()</code> 
+    requires that a user defined type overload the following operators: 
+    </p>
+    <pre>
+    class RectArea 
+    {
+    ...
+        RectArea &  operator += ( const RectArea &  x ) ;
+        RectArea &  operator -= ( const RectArea &  x ) ; 
+        RectArea    operator +  ( const RectArea &  x ) ; 
+        RectArea    operator -  ( const RectArea &  x ) ; 
+    } ;
+</pre>
+    <p>Through these operators, implementation functions of the B+ tree update cached data in 
+    internal nodes when the tree is modified and support the efficient algorithm <code>accumulate()</code>. 
+    Overloading four operators is a relatively strict requirement, since the summation of elements 
+    with the standard algorithm <code>std::accumulate()</code> requires overloading only one binary 
+    <code>operator+</code>. 
+    </p>
+    <p>The discussed data members and arithmetic operators of the class <code>RectArea</code> meet 
+    the minimum requirements for an element of a sequence with the efficient algorithm 
+    <code>accumulate()</code> for this example. In practical applications, this class can have 
+    other data members and interface operations. 
+    </p>
+    <p>The demo code shows two methods for the calculation of the sums. For efficient calculation with 
+    logarithmic running time, a user algorithm should call the member function <code>accumulate()</code>: 
+    </p>
+    <pre>
+    sum_rect_area = seqceRectArea . accumulate ( pos_a , pos_b , sum_rect_area_0 ) ;    
+</pre>
+    <p>The standard algorithm <code>std::accumulate()</code> obtains the same result in linear time: 
+    </p>
+    <pre>
+    sum_rect_area = std::accumulate ( pos_a , pos_b , sum_rect_area_0 ) ;    
+</pre>
+    <p>The second method can be helpful at the development stage of a project to test the correctness 
+    of the design and implementation of new classes and algorithms. 
+    </p>
+    <p>The values of sums of specific parameters of a sequence of rectangles can now be obtained 
+    through the interface member functions of the class <code>RectArea</code>: 
+    </p>
+    <pre>
+    sum_width  = sum_rect_area . Width ( ) ; 
+    sum_length = sum_rect_area . Length( ) ; 
+    sum_area   = sum_rect_area . Area  ( ) ; 
+    </pre>
+    <p>The number of elements in the range of calculations is obtained in constant time through 
+    the distance between random access iterators: 
+    </p>
+    <pre>
+    n = pos_b - pos_a ;     
+</pre>
+    <p>The mean values of the width, length and area are obtained from the corresponding sums: 
+    </p>
+    <pre>
+    mean_width  = sum_width  / n ;
+    mean_length = sum_length / n ;
+    mean_area   = sum_area   / n ;
+</pre>
+    <p>As it has been discussed above the main feature of the selected method is the calculation of 
+    several sums using one container with the efficient algorithm <code>accumulate()</code>. 
+    Despite only the width and length of a rectangle are independent parameters, the class 
+    <code>RectArea</code> has a special data member to store the area too. In contrast to the area 
+    calculation, the mean value of the perimeter does not require storing a special sum as a data member 
+    of the class <code>RectArea</code>. It can be derived from results obtained for the width and length 
+    using their sums or mean values, e.g.: 
+    </p>
+    <pre>
+    mean_perimeter = 2.0 * ( mean_width + mean_length ) ;    
+</pre>
+    <p>
+    This example can be used to implement the rectangle method of the numerical integration 
+    of a function. The approximate value of the definite integral is provided by the sum of 
+    rectangle areas <code>sum_area</code>. The width of a rectangle is a variable parameter, 
+    which means that a user algorithm can sample the function with both equal and variable 
+    steps between abscissas of data points. In the simplest cases when all data points are 
+    equally spaced it is sufficient to store in a container only area values without using 
+    the class <code>RectArea</code>.
+    </p>
+    <p>
+    The code of this example can be also adapted to support the other widely used integration 
+    method of the trapezoidal rule. The high accuracy methods of the numerical integration 
+    sum up values of a function multiplied by their weights. The example of the weighted mean 
+    value, which is discussed below, shows how the sums can be calculated in logarithmic time 
+    instead of linear. 
+    </p>        
+    <p>
+    The important feature of the containers of the namespace <code>container_bptree</code> 
+    is the low cost of all basic operations. The computer algorithms of the numerical 
+    integrations based on these containers can take advantage of the fast update operations 
+    in order to efficiently find the best approximation of a function. The insertion of new data 
+    points or interpolation points improves the accuracy the approximation. The removal of 
+    redundant data points reduces the number of approximation data points and saves space. 
+    </p>
+    <h3>Mean value and standard deviation 
+    </h3>
+    <p>The mean value and the standard deviation are key parameters in the statistical analysis of data. 
+    Practical applications processing large and huge data sets demand the most efficient algorithms 
+    for calculating these parameters. This example shows how to use one container with the efficient 
+    algorithm <code>accumulate()</code> to obtain these two important parameters for any consecutive 
+    elements of a sequence. 
+    </p>
+    <p>In this example, see file &quot;standard_deviation.cpp&quot;, the type of an element of 
+    a sequence with the efficient algorithm <code>accumulate()</code> is represented by the class
+    <code>ElementValue</code>: 
+    </p>
+    <pre>
+    class ElementValues
+    {
+    public:
+        explicit
+        ElementValues ( int v=0 ) ; 
+
+        int     Value ( )        const ; 
+        int     ValueSquared ( ) const ;  
+
+        ElementValues &  operator += ( const ElementValues &  x ) ;
+        ElementValues &  operator -= ( const ElementValues &  x ) ;
+        ElementValues    operator +  ( const ElementValues &  x ) ;
+        ElementValues    operator -  ( const ElementValues &  x ) ; 
+
+    private:
+        int     value ; 
+        int     value_squared ; 
+    } ;
+</pre>
+    <p>This class stores both the value of an element and its squared value. A user algorithm 
+    provides only the value of an element. The squared value is calculated and updated automatically 
+    through the constructor and operators of this class. 
+    </p>
+    <p>From an implementation point of view, this example algorithm can be regarded as a simplified 
+    variant of the algorithm processing parameters of a sequence of rectangles. In fact, the previous 
+    solution can support the calculations of mean and standard deviation values of elements provided 
+    that both the width and the length of a rectangle represent the value of an element and the area 
+    represents the squared value of the element. 
+    </p>
+    <p>The example code shows how to obtain the sum of values of elements and the sum of squared values 
+    using both the standard and efficient algorithm <code>accumulate()</code>. These calculations apply 
+    the efficient algorithm:
+    </p>
+    <pre>
+    sum_elem_values = seqce_values . accumulate ( pos_a , pos_b , sum_elem_values_0 ) ;
+    sum_x           = sum_elem_values . Value ( ) ;
+    sum_x_2         = sum_elem_values . ValueSquared ( ) ;
+</pre>
+    <p>The mean value and standard deviation are derived from the obtained sums and the number of elements:
+    </p>
+    <pre>
+    n         = pos_b - pos_a ; 
+    mean      = sum_x/n ; 
+    variance  = sum_x_2/n - mean*mean ; 
+    deviation = sqrt ( variance ) ;  
+</pre>
+    <h3>Testing if any consecutive elements are equal 
+    </h3>
+    <p>The efficient calculation of the mean value and standard deviation provides the following 
+    interesting result. The standard deviation is a measure of the distribution of data. If the value of 
+    this parameter is zero, then all elements of the sequence have the same value. This conclusion is 
+    particularly important for unordered sequences. The calculation of sums of values and squared values 
+    has logarithmic cost, see the discussion of basic algorithms in the section 
+    <a href="bp_trees.html">Design and implementation of B+ trees</a>. Hence, the efficient 
+    calculation of the standard deviation enables the user algorithm to test if any number <i>N</i> 
+    of consecutive elements are equal in <i>O(log N)</i> time. 
+    </p>
+    <p>In practical applications, it is necessary to minimize numerical errors of floating data types. 
+    Some improvement can be achieved by eliminating the division by the number of elements from the 
+    variance calculations. In this case, the test is reduced to the comparison of the sums of values 
+    and squared values: 
+    </p>
+    <pre>    
+    // test if all elements have the same value
+    if ( n*sum_x_2 == sum_x*sum_x ) 
+    ...
+</pre>
+    <p>This method can be suitable for integral types and user defined types based on integral types. 
+    </p>
+    <p>Note also that for ordered sequences, the test if all elements in a range have 
+    the same value is trivial. It only compares the values of elements at two specified positions. 
+    For a non-empty semi-open range <code>[pos_a, pos_b)</code>, the test is: 
+    </p>
+    <pre>    
+    if ( *pos_a == *(pos_b-1) )
+    ...  
+</pre>
+    <p>This test has constant cost. For an unordered sequence, without the efficient algorithm 
+    <code>accumulate()</code> the test takes linear time. 
+    </p>
+    <h3>Weighted mean value
+    </h3>
+    <p>The weighted mean value is an important characteristic and method for the analysis of large data sets. 
+    For histogram data the weight parameter represents a frequency of a value. For a large data set with 
+    pre-calculated mean values of subsets the weight represents a number of elements in a data subset. 
+    This parameter significantly improves the running time of the calculation of the mean value of the 
+    whole data set. With weights and mean values of subsets the time reduces from the total number of 
+    elements to the total number of subsets only. The example in file &quot;weighted_mean.cpp&quot; 
+    demonstrates how to improve the performance of calculations of the weighted mean value even further 
+    using a sequence with the efficient algorithm <code>accumulate()</code>. The running time of this 
+    algorithm is logarithmic function of the number of subsets. 
+    </p>
+    <p>The type of a container element is declared and defined in the class <code>WeightedValue</code>. 
+    It includes the three data members to store the value of an element, its weight and contribution, 
+    which is defined as the product of the value by its weight: 
+    </p>
+    <pre>    
+    class WeightedValue 
+    {
+    ...
+        int     value  ; 
+        int     weight ; 
+        int     contribution ; 
+    } ;
+</pre>
+    <p>The value of an element and its weight must be provided by a user algorithm. The contribution of 
+    the value is automatically calculated and updated using the value and its weight. 
+    </p>
+    <p>The comparison shows that this example has a very close similarity with the example of 
+    the calculation of the mean values of parameters for a sequence of rectangles. When the length, 
+    width and area of a rectangle represent the value, weight and contribution, respectively, of 
+    an element, the examples become almost identical. This fact suggests that in practical 
+    applications, code reuse can be achieved through the parameterization of algorithms. This fact 
+    also allows us to omit the discussion of many implementation details of this example. 
+    </p>
+    <p>The major specific feature of this example is that the calculation of the weighted mean value 
+    uses two accumulated sums of the contributions and weights:     
+    </p>
+    <pre>    
+    mean_weighted = sum_contribution / sum_weight ;
+</pre>
+    <p>The arithmetic mean value is derived from the sum of all values and the total number of the values. 
+    The arithmetic mean is a special case of the weighted mean when every weight is equal to one. However, 
+    the total number of elements does not require any special summation, since it can be determined 
+    in constant time through random access iterators as discussed above in the example  
+    "Mean value and standard deviation". 
+    </p>
+    <p>
+    It is interesting and helpful to compare the performance improvement of the standard and new 
+    methods of the weighted mean value in the calculation of the mean value of a data set. 
+    For example, if a data set contains <code>1,000,000</code> elements arranged into 
+    <code>1,000</code> subsets with pre-calculated mean values, then the standard algorithm 
+    improves the performance by the factor <code>1,000</code>. This improvement is substantial 
+    for any practical application. The new efficient algorithm <code>accumulate()</code> has logarithmic 
+    running time. For this reason its performance improvement is not so significant as for linear 
+    algorithms. For the same example, it is <code>log(1,000,000)/log(1,000)</code>, which gives 
+    the factor <code>2.0</code>. 
+    </p>
+
+  <hr>
+
+  <p><a href="http://validator.w3.org/check?uri=referer"><img border="0" src=
+  "images/valid-html401.png" alt="Valid HTML 4.01 Transitional"
+  height="31" width="88"></a></p>
+
+  <p>Revised 
+  <!--webbot bot="Timestamp" s-type="EDITED" s-format="%d %B, %Y" startspan -->
+  27 November, 2011<!--webbot bot="Timestamp" endspan i-checksum="38514" --></p>
+
+  <p><i>Copyright &copy; 2011</i> 
+  <a href="mailto:vadimstdk@gmail.com"><i>Vadim Stadnik</i><br>(vadimstdk@gmail.com)</a>
+  </p>
+
+  <p><i>Distributed under the Boost Software License, Version 1.0. (See
+  accompanying file <a href="images/LICENSE_1_0.txt">LICENSE_1_0.txt</a> or
+  copy at <a href=
+  "http://www.boost.org/LICENSE_1_0.txt">http://www.boost.org/LICENSE_1_0.txt</a>)</i></p>
+
+  <hr>  
+  <div align="right">
+    <a href="containers.html"><img src="images/prev.png" border=0 alt="Prev"></a>  
+    <a href="../index.html"><img src="images/up.png" border=0 alt="Up"></a>
+    <a href="../index.html"><img src="images/home.png" border=0 alt="Home"></a>
+    <a href="differences.html"><img src="images/next.png" border=0 alt="Next"></a>    
+  </div> 
+
+</body>
+</html>

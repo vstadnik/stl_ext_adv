@@ -1,0 +1,392 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html>
+<head>
+  <meta http-equiv="Content-Language" content="en-us">
+  <meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+  <link rel="stylesheet" type="text/css" href="../../../boost.css">
+
+  <title>Container_bptree - performance</title>
+</head>
+
+<body link="#0000FF" vlink="#800080">
+  <table border="0" cellpadding="7" cellspacing="0" width="100%" summary=
+  "header">
+    <tr>
+      <td valign="top" width="300">
+        <h3><a href="../../../index.htm"><img height="86" width="277" alt=
+        "C++ Boost" src="images/boost.png" border="0"></a></h3>
+      </td>
+
+      <td valign="top">
+        <h1 align="center">Container_bptree</h1>
+
+        <h2 align="center">Performance of basic algorithms</h2>
+      </td>
+    </tr>
+  </table>
+
+  <hr>
+  <div align="right">
+    <a href="iterators.html"><img src="images/prev.png" border=0 alt="Prev"></a>
+    <a href="../index.html"><img src="images/up.png" border=0 alt="Up"></a>
+    <a href="../index.html"><img src="images/home.png" border=0 alt="Home"></a>
+    <a href="bibliography.html"><img src="images/next.png" border=0 alt="Next"></a>    
+  </div> 
+ 
+  <p>
+  The performance analysis for a particular computer system can be a quite complex 
+  task even in the case of basic algorithms. The dependence of the running time on 
+  the number of elements is often a non-trivial function, which deviates from 
+  theoretical bounds. For a process, which accesses system resources through a virtual 
+  memory manager, theoretically constant parameters vary in a very wide range. 
+  The most important factors, which can make an unexpected effect on performance of 
+  algorithms, are cache misses and page faults. In addition to this there are other 
+  less obvious factors. For example, several applications can compete for system 
+  resources and interrupt each other. The memory fragmentation can also cause 
+  the performance degradation if a system has been running for an extended period of 
+  time since its last reboot. For these reasons the measured values of running times of 
+  algorithms can be used only as first order estimates. 
+  </p>
+  <p>
+  In this project the main point of performance tests is the comparison of B+ trees with 
+  other types of data structures. The C++ standard containers are an excellent choice 
+  for this task, since their interfaces are supported by various data structures. 
+  </p>
+  <p>
+  The values of running times of algorithms have been measured using Windows high 
+  resolution performance counter, for details see description of method 
+  <code>QueryPerformanceCounter()</code> in MSDN Library for Visual Studio. The test 
+  code has been compiled with optimization option - maximize speed. To improve 
+  accuracy the tests of sequential processing have been iterated in a <code>for</code> 
+  loop. The error of the values shown in the tables below is about 5%. 
+  </p>
+  <p>
+  Several desktop and laptop computers running Windows XP or Windows 7 have been tested. 
+  The performance tests have produced similar results for all of these systems. The data 
+  shown below have been obtained using the desktop PC with the following system info: 
+  Intel Core 2 Duo Processor E6400, 2.13GHz, 2.00MB of L2 Cache, 2.00GB of RAM, 
+  Windows XP 32 bits.
+  </p>
+  <p>
+  For brevity, in the tables below <code>sequence+</code> and <code>multiset+</code> 
+  denote containers based on B+ trees of the namespace <code>container_bptree</code>, 
+  <code>accumulate+()</code> - the efficient algorithm <code>accumulate()</code> 
+  supported by the B+ tree of the class <code>bp_tree_idx_acc</code>. 
+  </p>
+  
+  <h3>
+  Update operations
+  </h3>  
+  <h4>
+  Sequences
+  </h4>  
+  
+  <p>
+  The test algorithm: insert <i>N</i> elements into a sequence container before the 
+  middle position. The table shows values of running times in milliseconds against 
+  the number of elements processed by the algorithm. 
+  </p>
+  
+    <table border=1 cellpadding="8" frame="box">    
+    <caption>insert <i>N</i> elements before the middle position</caption>
+    <tr>
+        <td><i>N</i></td>
+        <td align="right">1,000</td>
+        <td align="right">10,000</td>
+        <td align="right">100,000</td>
+        <td align="right">1,000,000</td>
+    </tr>
+    <tr>
+        <td><code>std::vector</code></td>
+        <td align="right">0.3</td>
+        <td align="right">15.0</td>
+        <td align="right">2.1e+3</td>
+        <td align="right">2.2e+5</td>
+    </tr>
+    <tr>
+        <td><code>std::list</code></td>
+        <td align="right">0.19</td>
+        <td align="right">2.3</td>
+        <td align="right">25.0</td>
+        <td align="right">260.0</td>
+    </tr>
+    <tr>
+        <td><code>sequence+</code></td>
+        <td align="right">0.24</td>
+        <td align="right">2.9</td>
+        <td align="right">32.0</td>
+        <td align="right">320.0</td>
+    </tr>
+    </table>
+  <br />  
+
+  <p>
+  This test of performance is interesting, since <code>std::vector</code> outperforms 
+  other containers in many basic operations, for example, see discussion of sequential 
+  processing below.   
+  </p>
+  <p>
+  The total cost of the insertion of <i>N</i> elements into <code>std::vector</code> 
+  is quadratic due to linear cost of this operation for a single element. This 
+  computational cost makes <code>std::vector</code> unacceptable for an algorithm, 
+  which inserts or erases a large number of elements at random positions.   
+  </p>
+  <p>
+  <code>std::list</code> has the best result in this test, since it guarantees constant 
+  cost of the test operation for a single element. <code>sequence+</code> container based 
+  on a B+ tree has logarithmic cost of the insertion of a single element in the 
+  worst case. This container performs a bit worse than <code>std::list</code>, but 
+  much better than <code>std::vector</code>. 
+  </p>
+
+  <h4>
+  Multisets
+  </h4>  
+
+  <p>
+  The test algorithm: insert <i>N</i> elements into a multiset container. Three kinds of 
+  input data have been used in this test: ordered, random and specially prepared to insert 
+  elements before the middle position of a container. The tables show values of running 
+  times in milliseconds against the number of elements processed by the algorithm. 
+  </p>
+
+    <table border=1 cellpadding="8" frame="box">    
+    <caption>insert <i>N</i> ordered elements</caption>
+    <tr>
+        <td><i>N</i></td>
+        <td align="right">1,000</td>
+        <td align="right">10,000</td>
+        <td align="right">100,000</td>
+        <td align="right">1,000,000</td>
+    </tr>
+    <tr>
+        <td><code>std::multset</code></td>
+        <td align="right">0.33</td>
+        <td align="right">3.6</td>
+        <td align="right">55.0</td>
+        <td align="right">1500.0</td>
+    </tr>
+    <tr>
+        <td><code>multset+</code></td>
+        <td align="right">0.26</td>
+        <td align="right">3.0</td>
+        <td align="right">34.0</td>
+        <td align="right">340.0</td>
+    </tr>
+    </table>
+    
+  <br />
+    
+    <table border=1 cellpadding="8" frame="box">    
+    <caption>insert <i>N</i> elements before the middle position</caption>
+    <tr>
+        <td><i>N</i></td>
+        <td align="right">1,000</td>
+        <td align="right">10,000</td>
+        <td align="right">100,000</td>
+        <td align="right">1,000,000</td>
+    </tr>
+    <tr>
+        <td><code>std::multset</code></td>
+        <td align="right">0.36</td>
+        <td align="right">4.20</td>
+        <td align="right">53.0</td>
+        <td align="right">800.0</td>
+    </tr>
+    <tr>
+        <td><code>multset+</code></td>
+        <td align="right">0.39</td>
+        <td align="right">4.7</td>
+        <td align="right">55.0</td>
+        <td align="right">600.0</td>
+    </tr>
+    </table>
+
+  <br />
+
+    <table border=1 cellpadding="8" frame="box">    
+    <caption>insert <i>N</i> random elements</caption>
+    <tr>
+        <td><i>N</i></td>
+        <td align="right">1,000</td>
+        <td align="right">10,000</td>
+        <td align="right">100,000</td>
+        <td align="right">1,000,000</td>
+    </tr>
+    <tr>
+        <td><code>std::multset</code></td>
+        <td align="right">0.39</td>
+        <td align="right">4.8</td>
+        <td align="right">67.0</td>
+        <td align="right">2300.0</td>
+    </tr>
+    <tr>
+        <td><code>multset+</code></td>
+        <td align="right">0.4</td>
+        <td align="right">5.70</td>
+        <td align="right">88.0</td>
+        <td align="right">3000.0</td>
+    </tr>
+    </table>
+  <br />
+  
+  <p>
+  The running times of these insertion operations into multisets can be used to compare 
+  the efficiency of update operations in B+ trees and red black trees. Note that, 
+  in theory, multisets are less efficient in these tests than sequences, since the 
+  insertion of an element into a multiset involves the additional cost of search for a 
+  valid position.   
+  </p>
+  <p>
+  These tests show that B+ trees have better performance of the insertion of ordered 
+  data. Both data structures have practically the same running time of inserting 
+  <i>N</i> elements before the middle position of a container. Red black trees insert 
+  data a bit more efficiently in the test with random input data.   
+  </p>
+  <p>
+  The measurements show the performance degradation for both <code>std::multiset</code> and 
+  <code>multiset+</code> based on a B+ tree when the number of input elements becomes 
+  large (<i>N</i>=1,000,000). The most likely cause of this effect is the increased 
+  frequency of cache misses.
+  </p>
+
+  <h3>
+  Sequential processing and fast algorithm <code>accumulate()</code> 
+  </h3>
+
+  <p>
+  The standard library algorithm <code>accumulate()</code> is a typical example of sequential 
+  processing of data. This algorithm can be used to measure performance of ordered 
+  and unordered containers based on arrays, linked lists and trees. It is also useful 
+  and interesting to compare the results with performance of the fast algorithm 
+  <code>accumulate+()</code> implemented in the class <code>bp_tree_idx_acc</code> 
+  of the namespace <code>container_bptree</code>. 
+  </p>  
+  <p>
+  The table shows values of running times in microseconds against the number 
+  of elements processed by algorithms. 
+  </p>
+
+    <table border=1 cellpadding="8" frame="box">
+    <caption>
+    <code>std::accumulate()</code> and fast algorithm <code>accumulate()</code>
+    </caption>
+    <tr>
+        <td><i>N</i></td>
+        <td align="right">500</td>
+        <td align="right">5,000</td>
+        <td align="right">50,000</td>
+        <td align="right">500,000</td>
+    </tr>
+    <tr>
+        <td><code>std::multset</code></td>
+        <td align="right">12.0</td>
+        <td align="right">120.0</td>
+        <td align="right">1200.0</td>
+        <td align="right">14000.0</td>
+    </tr>
+    <tr>
+        <td><code>multset+</code></td>
+        <td align="right">4.0</td>
+        <td align="right">26.0</td>
+        <td align="right">260.0</td>
+        <td align="right">3700.0</td>
+    </tr>
+    <tr>
+        <td><code>sequence+</code></td>
+        <td align="right">3.5</td>
+        <td align="right">23.0</td>
+        <td align="right">230.0</td>
+        <td align="right">3600.0</td>
+    </tr>
+    <tr>
+        <td><code>std::list</code></td>
+        <td align="right">1.5</td>
+        <td align="right">17.0</td>
+        <td align="right">170.0</td>
+        <td align="right">3000.0</td>
+    </tr>
+    <tr>
+        <td><code>std::vector</code></td>
+        <td align="right">0.5</td>
+        <td align="right">3.5</td>
+        <td align="right">37.0</td>
+        <td align="right">390.0</td>
+    </tr>
+    <tr>
+        <td><code>accumulate+()</code></td>
+        <td align="right"> 0.095</td>
+        <td align="right"> 0.15</td>
+        <td align="right"> 0.19</td>
+        <td align="right"> 0.34</td>
+    </tr>
+    </table>
+  <br />
+    
+  <p>
+  These tests show that <code>std::multiset</code> is the least efficient container 
+  for sequential processing. The efficiency of <code>multiset+</code> and 
+  <code>sequence+</code> based on the B+ trees is three to four times better and only 
+  slightly worse than that of <code>std::list</code>. 
+  </p>
+  <p>
+  Note that new containers <code>sequence+</code> and <code>multiset+</code> have the 
+  same efficiency of sequential processing. In theory, it should be exactly the same 
+  as efficiency of <code>std::list</code>, since B+ trees store container elements in 
+  external nodes arranged into doubly linked lists. This connectivity gives the 
+  advantage of more efficient sequential access and processing of data compared 
+  to basic search trees such as red black trees, for more details, see the 
+  section <a href="bp_trees.html">Design and implementation of B+ trees</a>. 
+  </p>
+  <p>
+  These performance data confirm the well known fact that <code>std::vector</code> 
+  is the best choice of a container for sequential processing of data. This container 
+  quite noticeably beats the second best container <code>std::list</code>. 
+  The comparison also shows that <code>sequence+</code> based on a B+ tree can not 
+  outperform <code>std::vector</code>, when the user algorithm calls 
+  <code>std::accumulate()</code>.
+  </p>
+  <p>
+  The situation changes dramatically if the same user algorithm calls the member function 
+  <code>accumulate+()</code> of <code>sequence+</code> based on the B+ tree with the optimized 
+  data processing implemented in the class <code>bp_tree_idx_acc</code>. This algorithm 
+  demonstrates the performance improvement by orders of magnitude. It is also important that 
+  the running time of this efficient algorithm grows very slowly as the number of 
+  processed elements increases. The superiority of fast algorithm <code>accumulate+()</code> 
+  is explained by the fact that in theory its running time is logarithmic function of 
+  the number of elements. This testing confirms that in the asymptotical case linear algorithm 
+  can not compete with logarithmic algorithm even if this linear algorithm takes advantage 
+  of the most efficient sequence container. 
+  </p>
+
+  <hr>
+
+
+  <p><a href="http://validator.w3.org/check?uri=referer"><img border="0" src=
+  "images/valid-html401.png" alt="Valid HTML 4.01 Transitional"
+  height="31" width="88"></a></p>
+
+  <p>Revised 
+  <!--webbot bot="Timestamp" s-type="EDITED" s-format="%d %B, %Y" startspan -->
+  27 November, 2011<!--webbot bot="Timestamp" endspan i-checksum="38514" --></p>
+
+  <p><i>Copyright &copy; 2011</i> 
+  <a href="mailto:vadimstdk@gmail.com"><i>Vadim Stadnik</i><br>(vadimstdk@gmail.com)</a>
+  </p>
+
+  <p><i>Distributed under the Boost Software License, Version 1.0. (See
+  accompanying file <a href="images/LICENSE_1_0.txt">LICENSE_1_0.txt</a> or
+  copy at <a href=
+  "http://www.boost.org/LICENSE_1_0.txt">http://www.boost.org/LICENSE_1_0.txt</a>)</i></p>
+
+  <hr>  
+  <div align="right">
+    <a href="iterators.html"><img src="images/prev.png" border=0 alt="Prev"></a>
+    <a href="../index.html"><img src="images/up.png" border=0 alt="Up"></a>
+    <a href="../index.html"><img src="images/home.png" border=0 alt="Home"></a>
+    <a href="bibliography.html"><img src="images/next.png" border=0 alt="Next"></a>    
+  </div> 
+
+</body>
+</html>

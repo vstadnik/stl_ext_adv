@@ -1,0 +1,285 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html>
+<head>
+  <meta http-equiv="Content-Language" content="en-us">
+  <meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+  <link rel="stylesheet" type="text/css" href="../../../boost.css">
+
+  <title>Container_bptree - iterators</title>
+</head>
+
+<body link="#0000FF" vlink="#800080">
+  <table border="0" cellpadding="7" cellspacing="0" width="100%" summary=
+  "header">
+    <tr>
+      <td valign="top" width="300">
+        <h3><a href="../../../index.htm"><img height="86" width="277" alt=
+        "C++ Boost" src="images/boost.png" border="0"></a></h3>
+      </td>
+
+      <td valign="top">
+        <h1 align="center">Container_bptree</h1>
+
+        <h2 align="center">Random access iterators</h2>
+      </td>
+    </tr>
+  </table>
+  <hr>
+  <div align="right">
+    <a href="write.html"><img src="images/prev.png" border=0 alt="Prev"></a>
+    <a href="../index.html"><img src="images/up.png" border=0 alt="Up"></a>
+    <a href="../index.html"><img src="images/home.png" border=0 alt="Home"></a>
+    <a href="performance.html"><img src="images/next.png" border=0 alt="Next"></a>    
+  </div> 
+
+    <p>Random access iterators are essential types of new containers. This section 
+    covers some implementation aspects and potential problems, which may arise in 
+    user algorithms.  
+    </p>
+    <p>Iterators of STL containers, by design, are generalizations of pointers. 
+    This is why implementations of iterator classes for STL containers are often 
+    based on pointers. In the namespace <code>container_bptree</code> this approach has 
+    been used to implement bidirectional iterators of the class <code>bp_tree</code>. 
+    Random access iterators of the namespace <code>container_bptree</code>, which 
+    are the focus of this section, support the semantics of both a pointer and an index 
+    to a container element using the following approach. 
+    </p>
+    <p>The current position of an iterator is defined by two data members: a pointer 
+    to an external node of the deepest doubly linked list of a B+ tree and a 
+    corresponding index, which measures the distance in linear order from the first 
+    node of this list to the node pointed to by the iterator pointer. For all valid 
+    iterator positions the values of the iterator index and the values of the iterator pointer 
+    represent two mathematical sets, since for each of these two types all possible 
+    values are unique. The values of the index represent the set of non-negative 
+    integers. The values of the pointer represent points in the address space, which are 
+    not regular in the general case. The uniqueness of these values is supported by 
+    algorithms of the memory management implemented by a system. These properties of 
+    iterator data provide the basis for the implementation of one-to-one mapping between 
+    the sets of index and pointer values for all valid positions of an iterator object. 
+    Each operator and each member function modifier implemented in iterator classes keep 
+    this mapping valid, provided that the initial data members and mapping are valid.    
+    </p>
+    <p>Classes of random access iterators do not place any limit on the index value. For 
+    any iterator position outside the valid range of a container <code>[0, size)</code>, 
+    the iterator pointer has one value, which is the address of an external end or head 
+    node of a doubly linked list. This approach has the advantage that an iterator can be 
+    safely returned to the last valid position even if its current position is invalid. 
+    An example of such use case is shown in this demo code:    
+    </p>
+    <pre>
+    iter  = contr.begin() ; 
+    sz    = contr.size()  ; 
+    iter += sz/2 ; // valid position 
+    iter += sz ;   // invalid position 
+    iter -= sz ;   // valid position, the same as two lines above 
+</pre>
+    <p>The implementation of iterator classes takes full advantage of the index data member, which 
+    provides efficient support for many operators <code>{ ==, !=, &lt;, &lt;=, &gt;, &gt;=, - }</code>. 
+    The cost of these operators is <i>O(1)</i>, which in theory is the same as that for pointer 
+    based iterators of <code>std::vector</code>.
+    </p>
+    <p>The implementation of increment and decrement operators of bidirectional and 
+    random access iterators of the namespace <code>container_bptree</code> uses the 
+    connectivity of external nodes of the doubly linked list. The cost of obtaining a next 
+    or a previous element of a container element using a node link is <i>O(1)</i>. 
+    Thus, the cost of sequential access to each container element through an iterator 
+    is <i>O(N)</i>.    
+    </p>
+    <p>The operators <code>{+=, -=, +, -}</code>, which move an iterator to an arbitrary 
+    position within a container, in the worst case have cost <i>O(log N)</i>. Thus, 
+    compared to random access iterators of <i>std::vector</i>, some loss of performance 
+    with the new iterators is possible when an algorithm frequently visits distant elements 
+    of a container. However, the performance of the algorithm will be much better than with 
+    bidirectional iterators, which provide only linear time for the same operations. 
+    For these reasons iterators of containers with efficient indexing of elements 
+    (classes <code>bp_tree_idx</code> and <code>bp_tree_idx_acc</code>) have been assigned 
+    to the category of the random access iterator.    
+    </p>
+    <p>One of the major problems for algorithms using random access iterators is the 
+    invalidation of an iterator, when a container pointed to by the iterator is modified 
+    by operations, which add or remove elements. This is a fundamental problem in the 
+    mapping of non-negative integers into container elements. It is independent of 
+    a specific implementation of an iterator and arises even when an algorithm does not 
+    modify an iterator directly. If the number of elements in the container is changed 
+    before the iterator position, the iterator index will point to a different node and 
+    hence to a different element. In this case mapping between index and pointer values 
+    becomes invalid regardless of whether an index value is in a valid range or not, 
+    and whether an element at the indexed position is equivalent to the old one or not.    
+    </p>
+    <p>In order to address potential problems of user algorithms, iterator classes 
+    include a number of functions, which can be used to detect the most typical problems 
+    and implement solutions specific to these algorithms.    
+    </p>
+    <p>The member function</p>
+    <pre>
+    bool valid_data ( ) const ;
+</pre>    
+    <p>shows whether data members of an iterator are correctly initialized. If this 
+    function returns <code>false</code>, no valid mapping can be reset. This function 
+    has constant cost. 
+    </p>
+    <p>The state of mapping of the iterator data can be checked using the member function
+    </p>      
+    <pre>
+    bool valid_mapping ( ) const ;  
+</pre> 
+    <p>If mapping is invalid, the iterator must not be used in algorithms. The behaviour 
+    of such iterator object, as well as container functions, which use this iterator, 
+    are undefined. This function has logarithmic cost and notifies the user of the problem 
+    regardless of whether an indexed position is in a valid range or not. When the function 
+    returns <code>false</code>, valid mapping can be restored for logarithmic time using 
+    one of the two following options.
+    </p>    
+    <p>The member function
+    </p>
+    <pre>
+    void update_index ( ) ;    
+</pre>         
+    <p>restores valid mapping by recalculating the iterator index for the current value 
+    of the iterator pointer. The function does not change the element, to which the 
+    updated iterator points, before its container has been modified and after mapping has been 
+    restored. This feature allows algorithms to use a random access iterator of the 
+    namespace <code>container_bptree</code> as a pointer to an element, which can be 
+    particularly helpful in the following applications. An algorithm requires efficient 
+    random access iterators, but container update or resize operations invalidate these 
+    iterators. An algorithm takes advantage of bidirectional iterators to avoid the 
+    invalidation problem, but its efficiency is too low due to linear running time of 
+    operations using these iterators.
+    </p>    
+    <p>The member function</p>
+    <pre>
+    void update_pointer ( ) ;
+</pre> 
+    <p>uses the current index value in order to find the corresponding pointer to the 
+    external node. If the iterator index is not in the valid range, the iterator pointer 
+    points to the head node of the deepest list. This function retains the distance 
+    between the updated iterator and the iterator pointing to the first element in the 
+    container. Thus, it changes the element, to which the updated iterator points.    
+    </p>
+    <p>Any iterator requires that a container it points to exists in main memory and is 
+    in a valid state. The member function <code>update_index()</code> cannot be used if 
+    an iterator points to a node, which has been already deleted. This restriction does 
+    not apply to the member function <code>update_pointer()</code>, which is safe to use 
+    even in this case. If an iterator was in a valid state and a container the iterator 
+    points to has been modified by operations, which only insert elements, then the valid 
+    state of this iterator can be restored by any of these two update functions. 
+    If, however, at least one element has been erased, then only the function 
+    <code>update_pointer()</code> is safe in the general case. The function 
+    <code>update_index()</code> can still be used in many practical applications, but 
+    the correctness of these calls is a responsibility of a user algorithm.    
+    </p>
+    <p>The additional non-standard functions make random access iterators of the 
+    namespace <code>container_bptree</code> more versatile than STL iterators. These new 
+    iterators can replace both random access and bidirectional iterators of the 
+    containers of the C++ standard library in algorithms. The new member functions also 
+    increase the safety of algorithms, which can use new functions to avoid problems 
+    associated with invalidated iterators. These improvements have a high practical 
+    importance and relatively low logarithmic cost. Note also, that basic linear data 
+    structures, such as a linked list or an array, can provide only limited support for 
+    the new functionality offered by the random access iterators of the namespace 
+    <code>container_bptree</code>.
+    </p>
+    <p>The most reasonable alternative to these new iterator member functions is a search 
+    for a required element using a copy object. This method can have a high computational 
+    cost, such as linear search in a sequence, that is unacceptable in practical applications. 
+    However, even this alternative is not always possible. In a container with multiple 
+    equivalent elements the search method finds one of many equivalent elements. 
+    The element is not necessary identical to an element, which has been lost 
+    by an algorithm due to the invalidation of an iterator.
+    </p>
+    <p>For an algorithm working with a sequence container through an iterator it may be 
+    required to obtain an index of an element, to which the iterator points. The current 
+    version of iterator classes of the namespace <code>container_bptree</code> does not 
+    provide an interface function, which returns an index value of a container element, 
+    for example:    
+    </p>
+    <pre>
+    index = iter . index ( ) ;
+</pre> 
+    <p>This index value can be easily retrieved using one of the already available 
+    STL methods:    
+    </p>  
+    <pre>
+    index = std::distance ( contr.begin() , iter ) ; // or
+    index = iter - contr.begin() ;
+</pre> 
+    <p>Each of these two options has constant cost.
+    </p>
+    <h3>
+    Iterators and accumulators
+    </h3>
+    <p> 
+    In theory, random access iterators of the class <code>bp_tree_idx_acc</code> can efficiently 
+    support extended functionality. In particular, they can represent in user algorithms objects 
+    of accumulators. These iterators could implement the member function 
+    <code>accumulated_value()</code>, which would return a stored accumulated value of 
+    the container elements in the range <code>[0, </code><i>I</i><code>)</code>, where 
+    <i>I</i> is the number of container elements before the iterator position. With this member 
+    function the sum of consecutive elements specified by two iterators can be calculated 
+    as the difference of two accumulated values:
+    </p>
+    <pre> 
+    sum = iter_b.accumulated_value() - iter_a.accumulated_value() ;
+    </pre>
+    <p>    
+    The main advantage of the member function <code>accumulated_value()</code> is that the sum 
+    value is calculated in constant time only. This fact suggests that the computational 
+    complexity of algorithms based on the function <code>accumulate()</code> can be reduced 
+    down to the absolute theoretical minimum. In particular, the mean value and standard deviation 
+    of any number of consecutive elements can be calculated in constant time. 
+    </p>
+    <p>    
+    The support of the accumulator functionality looks very attractive, however, it has a number of 
+    limitations. First of all, there is a cost associated with moving an iterator to a specified position 
+    and simultaneous updating its accumulated value. In the worst case this cost is <i>O(log N)</i>, 
+    where <i>N</i> is the total number of elements in a container. The fast member function 
+    <code>accumulate()</code> is more efficient in this case, since its cost is <i>O(log D)</i>, 
+    where <i>D</i> is the number of consecutive container elements to sum up. 
+    </p>
+    <p>
+    The second practically important problem of the extended iterators with the member function 
+    <code>accumulated_value()</code> is the loss of accuracy of algorithms based on floating data types. 
+    For <i>D</i> consecutive container elements in the range <code>[</code><i>F</i><code>, 
+    </code><i>F</i><code>+</code><i>D</i><code>)</code>, where <i>F</i> is the index of the first 
+    element, the sum of values is calculated as the difference of two accumulated values in 
+    the ranges <code>[0, </code><i>F</i><code>+</code><i>D</i><code>)</code> and 
+    <code>[0, </code><i>F</i><code>)</code>. 
+    The numerical error of this method depends not only on the values of <i>D</i> consecutive 
+    elements, but also on the values of first <i>F</i> elements of the container. 
+    In the general case the error becomes significant when <i>F</i><code>>></code><i>D</i> and/or 
+    the accumulated value of first <i>F</i> elements is huge compared to the result sum value. 
+    The member function <code>accumulate()</code> processes only the required <i>D</i> 
+    consecutive elements and, thus, avoids this problem, see also the discussion of basic 
+    algorithms in the section <a href="bp_trees.html">Design and implementation of B+ trees</a>.     
+    </p>    
+    
+  <hr>
+
+  <p><a href="http://validator.w3.org/check?uri=referer"><img border="0" src=
+  "images/valid-html401.png" alt="Valid HTML 4.01 Transitional"
+  height="31" width="88"></a></p>
+
+  <p>Revised 
+  <!--webbot bot="Timestamp" s-type="EDITED" s-format="%d %B, %Y" startspan -->
+  27 November, 2011<!--webbot bot="Timestamp" endspan i-checksum="38514" --></p>
+
+  <p><i>Copyright &copy; 2011</i> 
+  <a href="mailto:vadimstdk@gmail.com"><i>Vadim Stadnik</i><br>(vadimstdk@gmail.com)</a>
+  </p>
+
+  <p><i>Distributed under the Boost Software License, Version 1.0. (See
+  accompanying file <a href="images/LICENSE_1_0.txt">LICENSE_1_0.txt</a> or
+  copy at <a href=
+  "http://www.boost.org/LICENSE_1_0.txt">http://www.boost.org/LICENSE_1_0.txt</a>)</i></p>
+
+  <hr>  
+  <div align="right">
+    <a href="write.html"><img src="images/prev.png" border=0 alt="Prev"></a>
+    <a href="../index.html"><img src="images/up.png" border=0 alt="Up"></a>
+    <a href="../index.html"><img src="images/home.png" border=0 alt="Home"></a>
+    <a href="performance.html"><img src="images/next.png" border=0 alt="Next"></a>    
+  </div> 
+
+</body>
+</html>

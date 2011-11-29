@@ -1,0 +1,104 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html>
+<head>
+  <meta http-equiv="Content-Language" content="en-us">
+  <meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+  <link rel="stylesheet" type="text/css" href="../../../boost.css">
+
+  <title>Container_bptree - introduction</title>
+</head>
+
+<body link="#0000FF" vlink="#800080">
+  <table border="0" cellpadding="7" cellspacing="0" width="100%" summary=
+  "header">
+    <tr>
+      <td valign="top" width="300">
+        <h3><a href="../../../index.htm"><img height="86" width="277" alt=
+        "C++ Boost" src="images/boost.png" border="0"></a></h3>
+      </td>
+
+      <td valign="top">
+        <h1 align="center">Container_bptree</h1>
+
+        <h2 align="center">Introduction</h2>
+      </td>
+    </tr>
+  </table>
+  
+  <hr>
+  <div align="right">
+    <a href="../index.html"><img src="images/prev.png" border=0 alt="Prev"></a>
+    <a href="../index.html"><img src="images/up.png" border=0 alt="Up"> </a>
+    <a href="../index.html"><img src="images/home.png" border=0 alt="Home"></a>
+    <a href="extensions.html"><img src="images/next.png" border=0 alt="Next"></a>    
+  </div> 
+  
+  <p>
+  1. Is it possible to sum up any <i>N</i> consecutive numbers in less than <i>N-1</i> 
+  operations? 
+  </p>
+  <p>
+  Yes, it is possible, but it is not completely trivial. The best possible 
+  efficiency of an algorithm is often limited by the complexity of a data structure. 
+  For example, both a linked list and a tree can represent a sequence, but out of 
+  these two data structures only a tree can support a search algorithm with 
+  logarithmic running time. 
+  </p>
+  <p>
+  In the current version of the namespace <code>container_bptree</code>, one 
+  variant of a B+ tree supports an algorithm, which sums up any <i>N</i> 
+  consecutive numbers in <i>O(log N)</i> operations in the worst case.
+  </p>
+  <p>
+  2. Why is it important?   
+  </p>
+  <p>
+  The addition is a fundamental operation in the modern computational world. This 
+  operation passes through every level of practical use of computers from 
+  single bits to large scale applications, such as databases or models of 
+  financial markets. Many applications deal with huge and constantly growing volumes 
+  of data and thus require the increasing computational power of systems.
+  </p>
+  <p>
+  An algorithm, which sums up 1,000,000,000 elements in only 100 operations, is 
+  astronomically more cost effective against an equivalent hardware upgrade. 
+  It can help improve efficiency and quality of data analysis, problem solving and 
+  business modeling. 
+  </p>
+  <p>
+  Advanced data structures offer advanced facilities for data processing and analysis. 
+  The B+ trees implemented in this project represent the class of advanced data 
+  structures. In addition to super fast summation, these trees provide several other 
+  useful extensions of STL containers and iterators. 
+  </p>
+
+  <hr>
+
+  <p><a href="http://validator.w3.org/check?uri=referer"><img border="0" src=
+  "images/valid-html401.png" alt="Valid HTML 4.01 Transitional"
+  height="31" width="88"></a></p>
+
+  <p>Revised 
+  <!--webbot bot="Timestamp" s-type="EDITED" s-format="%d %B, %Y" startspan -->
+  27 November, 2011<!--webbot bot="Timestamp" endspan i-checksum="38514" --></p>
+
+  <p><i>Copyright &copy; 2011</i> 
+  <a href="mailto:vadimstdk@gmail.com"><i>Vadim Stadnik</i><br>(vadimstdk@gmail.com)</a>
+  </p>
+
+  <p><i>Distributed under the Boost Software License, Version 1.0. (See
+  accompanying file <a href="images/LICENSE_1_0.txt">LICENSE_1_0.txt</a> or
+  copy at <a href=
+  "http://www.boost.org/LICENSE_1_0.txt">http://www.boost.org/LICENSE_1_0.txt</a>)</i></p>
+
+  <hr>  
+  <div align="right">
+    <a href="../index.html"><img src="images/prev.png" border=0 alt="Prev"></a>
+    <a href="../index.html"><img src="images/up.png" border=0 alt="Up"></a>
+    <a href="../index.html"><img src="images/home.png" border=0 alt="Home"></a>
+    <a href="extensions.html"><img src="images/next.png" border=0 alt="Next"></a>    
+  </div> 
+
+</body>
+</html>

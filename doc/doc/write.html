@@ -1,0 +1,132 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html>
+<head>
+  <meta http-equiv="Content-Language" content="en-us">
+  <meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+  <link rel="stylesheet" type="text/css" href="../../../boost.css">
+
+  <title>Container_bptree - write</title>
+</head>
+
+<body link="#0000FF" vlink="#800080">
+  <table border="0" cellpadding="7" cellspacing="0" width="100%" summary=
+  "header">
+    <tr>
+      <td valign="top" width="300">
+        <h3><a href="../../../index.htm"><img height="86" width="277" alt=
+        "C++ Boost" src="images/boost.png" border="0"></a></h3>
+      </td>
+
+      <td valign="top">
+        <h1 align="center">Container_bptree</h1>
+
+        <h2 align="center">Restrictions on write operations</h2>
+      </td>
+    </tr>
+  </table>
+  <hr>
+  <div align="right">
+    <a href="bp_trees.html"><img src="images/prev.png" border=0 alt="Prev"></a>
+    <a href="../index.html"><img src="images/up.png" border=0 alt="Up"></a>
+    <a href="../index.html"><img src="images/home.png" border=0 alt="Home"></a>
+    <a href="iterators.html"><img src="images/next.png" border=0 alt="Next"></a>    
+  </div> 
+
+    <p>The C++ standard library supports a number of methods to change the value of a 
+    container element. The most general method is to write a new value to an element 
+    through an iterator: <code>*iter = val_new</code>. The sequence containers 
+    <code>vector</code> and <code>deque</code> provide the subscript 
+    <code>operator[ ]</code> and the member function <code>at()</code>. There are also 
+    other ways for an algorithm to obtain a pointer or a reference to a container 
+    element and use it for a write operation.     
+    </p>
+    <p>The problem with these methods is that they are generally not safe. This is why 
+    there are a number of rules on how to use these methods in algorithms. First of all, 
+    there is a fundamental restriction, which is applied to both STL and new containers. 
+    All of these write methods are not safe for ordered containers, including ordered 
+    sequences, such as <code>vector</code> and <code>list</code>. Other implementation 
+    details of write methods, which are discussed below, are specific to the data 
+    structures supporting STL variants of new containers.     
+    </p>
+    <p>The B+ trees of the namespace <code>container_bptree</code> implement an optimized 
+    approach to the write methods, since these data structures store container elements 
+    only in the external nodes of a doubly linked list. The operation, which writes a 
+    new value to an element in an external node through an iterator, is identical to 
+    such an operation in any linked list and has constant computational cost. After the 
+    element has been modified, all connected internal nodes operate with the new value, 
+    since they access the modified element through pointers to the external node. If the 
+    order of elements in a container is not modified, this approach correctly supports 
+    write operations for two types of trees of the namespace <code>container_bptree</code>: 
+    the class <code>bp_tree</code> and the class <code>bp_tree_idx</code>.    
+    </p>
+    <p>For STL variants of containers based on the class <code>bp_tree_idx_acc</code> 
+    the support for correct write operations is more complex. Although this variant of 
+    a B+ tree has the same structure as the two other trees, its internal nodes store 
+    additional sum data for the efficient algorithm <code>accumulate()</code>. 
+    A write operation, which changes a value of an element in an external node only, 
+    makes additional sum data invalid in a number of internal  nodes. This simple 
+    implementation makes write operations for all types of containers based on the 
+    class <code>bp_tree_idx_acc</code>, including sequences, unsafe. 
+    In order to maintain tree data valid, the change in the element value must be properly 
+    reflected in the sum data in a chain of parent nodes at every level of a tree from 
+    an external node to the root. For this reason in the class <code>bp_tree_idx_acc</code> 
+    the safe write operation has cost <i>O(log N)</i> and is less efficient than the read 
+    operation, which has constant cost.    
+    </p>
+    <p>One of the options to avoid these invalidation problems is to implement safe 
+    write methods in user algorithms. This is a reasonable approach; however, it has 
+    a complication that the safe implementation of write methods is container type 
+    dependent.
+    </p>
+    <p>The member function</p>
+    <pre>    
+    std::pair&lt;iterator, bool&gt;
+    write ( iterator  pos , const value_type &  val_new ) ;
+</pre>    
+    <p>has been added to address all types of the data invalidation problems, which can 
+    be caused by the write methods. This function guarantees that a container, to which 
+    an iterator points, remains in a valid state after a write operation. Thus, it can be 
+    used in code instead of write operations like <code>*iter=value_new</code> discussed 
+    above. Algorithms, which use this function, gain the additional advantage of being 
+    able to implement more generic solutions.
+    </p>
+    <p>This member function is supported by every STL variant of a container of the 
+    namespace <code>container_bptree</code> with computational complexity varying from 
+    <i>O(1)</i> to <i>O(log N)</i> in the worst case. The implementation of this function 
+    for each container type is equivalent to two operations, which erase an old element 
+    pointed to by an input iterator and insert a new element. This is one of the most 
+    general approaches to write methods for all types of submitted containers. The 
+    implementation of this function is specific to a container type, but none of them 
+    changes the number of elements in a container.
+    </p>
+
+  <hr>
+
+  <p><a href="http://validator.w3.org/check?uri=referer"><img border="0" src=
+  "images/valid-html401.png" alt="Valid HTML 4.01 Transitional"
+  height="31" width="88"></a></p>
+
+  <p>Revised 
+  <!--webbot bot="Timestamp" s-type="EDITED" s-format="%d %B, %Y" startspan -->
+  27 November, 2011<!--webbot bot="Timestamp" endspan i-checksum="38514" --></p>
+
+  <p><i>Copyright &copy; 2011</i> 
+  <a href="mailto:vadimstdk@gmail.com"><i>Vadim Stadnik</i><br>(vadimstdk@gmail.com)</a>
+  </p>
+
+  <p><i>Distributed under the Boost Software License, Version 1.0. (See
+  accompanying file <a href="images/LICENSE_1_0.txt">LICENSE_1_0.txt</a> or
+  copy at <a href=
+  "http://www.boost.org/LICENSE_1_0.txt">http://www.boost.org/LICENSE_1_0.txt</a>)</i></p>
+
+  <hr>  
+  <div align="right">
+    <a href="bp_trees.html"><img src="images/prev.png" border=0 alt="Prev"></a>
+    <a href="../index.html"><img src="images/up.png" border=0 alt="Up"></a>
+    <a href="../index.html"><img src="images/home.png" border=0 alt="Home"></a>
+    <a href="iterators.html"><img src="images/next.png" border=0 alt="Next"></a>    
+  </div> 
+
+</body>
+</html>

@@ -1,0 +1,120 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html>
+<head>
+  <meta http-equiv="Content-Language" content="en-us">
+  <meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+  <link rel="stylesheet" type="text/css" href="../../../boost.css">
+
+  <title>Container_bptree - extensions</title>
+</head>
+
+<body link="#0000FF" vlink="#800080">
+  <table border="0" cellpadding="7" cellspacing="0" width="100%" summary=
+  "header">
+    <tr>
+      <td valign="top" width="300">
+        <h3><a href="../../../index.htm"><img height="86" width="277" alt=
+        "C++ Boost" src="images/boost.png" border="0"></a></h3>
+      </td>
+
+      <td valign="top">
+        <h1 align="center">Container_bptree</h1>
+
+        <h2 align="center">Extensions of STL facilities</h2>
+      </td>
+    </tr>
+  </table>
+  <hr>
+  <div align="right">
+    <a href="introduction.html"><img src="images/prev.png" border=0 alt="Prev"></a>
+    <a href="../index.html"><img src="images/up.png" border=0 alt="Up"></a>
+    <a href="../index.html"><img src="images/home.png" border=0 alt="Home"></a>
+    <a href="containers.html"><img src="images/next.png" border=0 alt="Next"></a>    
+  </div> 
+
+    <p>The C++ standard library [<a href="bibliography.html">1</a>] has proven to be very effective 
+    in the development of various programming solutions. The success of this library is due to its 
+    solid theoretical framework and high quality of design. One of the key features of this library 
+    is that many types of containers represent specialized and optimized variants of a sequence, 
+    which is one of the most fundamental mathematical concepts widely used to solve problems in 
+    numerous application areas. The choice of a specific computer representation of a sequence 
+    is critical for achieving the best possible structure and efficiency of user solutions. 
+    </p>        
+    <p>The namespace <code>container_bptree</code> offers a number of STL variants of containers 
+    based on B+ trees [<a href="bibliography.html">2</a>]. These trees have the same theoretical 
+    performance in terms of search and update operations as other types of search trees. 
+    The main advantage of B+ trees is that they provide more efficient sequential access to data. 
+    This feature itself makes these data structures quite attractive for use in various types of containers. 
+    In addition to this, the basic search B+ trees can be augmented as any other data structure 
+    in order to support new algorithms and improve the performance of existing algorithms. 
+    The increased computational power of the augmented data structures enables the development of 
+    containers and iterators with new functionality, as well as new more efficient general algorithms. 
+    The library <code>container_bptree</code> offers the following advantages and extensions of 
+    STL facilities: 
+    </p>
+    
+    <ul>
+    <li>A generalized and unified computer representation of sequences of many types: ordered and 
+        unordered, containing unique and multiple elements, with bidirectional and random access 
+        iterators. In particular, one augmented data structure can efficiently support specialized 
+        STL sequences (<code>vector</code>, <code>deque</code>, <code>list</code>) and STL variants of 
+        associative containers (<code>set</code>, <code>mulitset</code>, <code>map</code>, 
+        <code>miltimap</code>) with random access iterators. 
+    <li>The random access iterators of containers of the namespace <code>container_bptree</code> 
+        implement multi-purpose and efficient extensions of STL iterators. An iterator of this type 
+        can be used in algorithms as a pointer and an index to an element of a container. 
+        These random access iterators can effectively address the fundamental problem of 
+        the iterator invalidation and improve the reliability of user algorithms in a similar way 
+        to bidirectional iterators of a list. 
+    <li>The function <code>accumulate()</code> with logarithmic computational complexity can 
+        significantly improve performance of many practically important algorithms and applications, 
+        such as the numerical integration, the statistics, the data analysis etc. 
+    <li>The generalized STL variants of containers and iterators of the namespace 
+        <code>container_bptree</code> offer the advantage of the development of more 
+        general solutions and extend the application area of STL. 
+        They complement and can replace in algoritms the specialized STL containers 
+        with reduced interfaces, less efficient member functions and bidirectional iterators. 
+    </ul>
+    
+    <p>The C++ standard library specifies interfaces of container types and allows various 
+    implementation alternatives, including choice of the most suitable data structures. 
+    The development of the namespace <code>container_bptree</code> demonstrates that B+ trees 
+    not only support, but also extend the facilities of STL. Compared to other data structures, 
+    B+ trees have important practical advantages in this application area. This class of data 
+    structures is one of the most thoroughly studied at present. There are many implementations 
+    of B+ trees, which gain from specific system optimizations. These optimized B+ trees 
+    have a great potential in achieving the best possible performance and a high level of 
+    generality of programming solutions, which is one of the design principles of 
+    STL [<a href="bibliography.html">1</a>].
+    </p>
+
+  <hr>
+
+  <p><a href="http://validator.w3.org/check?uri=referer"><img border="0" src=
+  "images/valid-html401.png" alt="Valid HTML 4.01 Transitional"
+  height="31" width="88"></a></p>
+
+  <p>Revised 
+  <!--webbot bot="Timestamp" s-type="EDITED" s-format="%d %B, %Y" startspan -->
+  27 November, 2011<!--webbot bot="Timestamp" endspan i-checksum="38514" --></p>
+
+  <p><i>Copyright &copy; 2011</i> 
+  <a href="mailto:vadimstdk@gmail.com"><i>Vadim Stadnik</i><br>(vadimstdk@gmail.com)</a>
+  </p>
+
+  <p><i>Distributed under the Boost Software License, Version 1.0. (See
+  accompanying file <a href="images/LICENSE_1_0.txt">LICENSE_1_0.txt</a> or
+  copy at <a href=
+  "http://www.boost.org/LICENSE_1_0.txt">http://www.boost.org/LICENSE_1_0.txt</a>)</i></p>
+
+  <hr>  
+  <div align="right">
+    <a href="introduction.html"><img src="images/prev.png" border=0 alt="Prev"></a>
+    <a href="../index.html"><img src="images/up.png" border=0 alt="Up"></a>
+    <a href="../index.html"><img src="images/home.png" border=0 alt="Home"></a>
+    <a href="containers.html"><img src="images/next.png" border=0 alt="Next"></a>    
+  </div> 
+
+</body>
+</html>

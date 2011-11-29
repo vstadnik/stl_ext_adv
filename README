@@ -1,0 +1,45 @@
+
+Copyright Vadim Stadnik 2011.
+Distributed under the Boost Software License, Version 1.0.
+(See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+
+SUMMARY
+
+Advanced data structures offer useful STL extensions that 
+are not possible or not efficient with basic data structures, 
+such as arrays, linked lists and red-black trees. This project 
+focuses mainly on a generalized and unified computer representation 
+of sequences using the augmented B+ trees. It provides 
+the following STL extensions:
+
+- The sequence container supports random access iterators and 
+  a union of interfaces of STL containers: vector, list and deque. 
+  This sequence offers the advantage of efficient update operations 
+  with logarithmic running time compared with linear running time of 
+  the same operations of std::vector. 
+
+- The associative containers (set, multiset, map and multimap) 
+  with random access iterators. 
+
+- The enhanced random access iterators effectively address 
+  the fundamental problem of the iterator invalidation. 
+
+- The function accumulate() with logarithmic computational complexity 
+  can significantly improve performance of many practically important 
+  algorithms and applications, such as the numerical integration, 
+  the statistics, the data analysis etc. 
+
+
+EXAMPLES 
+demonstrate how to improve the computational complexity 
+from O(N) to O(log N) in the following applications and problems: 
+- numerical integration;
+- calculation of mean value and standard deviation;
+- calculation of weighted mean value;
+- testing if any number of consecutive elements are equal;
+- counting intersections of one interval with sequence intervals; 
+
+
+COMPILERS
+- MSVC++ 9/10 (Visual Studio 2008/2010, including Express editions) ; 
+- GCC 4.5.2 (tested using MinGW) ;

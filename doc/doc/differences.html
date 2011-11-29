@@ -1,0 +1,194 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html>
+<head>
+  <meta http-equiv="Content-Language" content="en-us">
+  <meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+  <link rel="stylesheet" type="text/css" href="../../../boost.css">
+
+  <title>Container_bptree - differences</title>
+</head>
+
+<body link="#0000FF" vlink="#800080">
+  <table border="0" cellpadding="7" cellspacing="0" width="100%" summary=
+  "header">
+    <tr>
+      <td valign="top" width="300">
+        <h3><a href="../../../index.htm"><img height="86" width="277" alt=
+        "C++ Boost" src="images/boost.png" border="0"></a></h3>
+      </td>
+
+      <td valign="top">
+        <h1 align="center">Container_bptree</h1>
+
+        <h2 align="center">Main differences between container_bptree and STL containers</h2>
+      </td>
+    </tr>
+  </table>
+  <hr>
+  <div align="right">
+    <a href="examples.html"><img src="images/prev.png" border=0 alt="Prev"></a>  
+    <a href="../index.html"><img src="images/up.png" border=0 alt="Up"></a>
+    <a href="../index.html"><img src="images/home.png" border=0 alt="Home"></a>
+    <a href="bp_trees.html"><img src="images/next.png" border=0 alt="Next"></a>    
+  </div> 
+
+    <p>The new containers supporting variants of STL interfaces should not take much time 
+    to learn how to use in algorithms. It is only necessary to understand how these new 
+    containers differ from standard containers. This section provides a list of the most 
+    significant non-standard features of interface types of the namespace 
+    <code>container_bptree</code> and explains the reasons as to why these features 
+    have been implemented.
+    </p>
+    <p>The current version of submitted classes has reached a relatively high level of consistency 
+    with the C++03 standard. Nevertheless, interfaces of container and iterator types of the namespace 
+    <code>container_bptree</code> do not completely conform to the requirements of STL containers. 
+    The differences, which are discussed in this section, are caused by specific properties of B+ trees 
+    of the namespace <code>container_bptree</code> and by design decisions, which have been made to 
+    improve the consistency of various types of STL sequences. There are a few new member functions 
+    as well as a few differences in the signatures of functions and in the computational complexity.
+    </p>
+    
+    <p>1. The library <code>container_bptree</code> supports STL variants of associative containers 
+    (<code>set</code>, <code>multiset</code>, <code>map</code> and <code>multimap</code>) 
+    with both bidirectional and random access iterators. 
+    </p>
+    
+    
+    <p>2. The class <code>sequence</code>, which implements a union of interfaces of the three STL 
+    classes <code>list</code>, <code>vector</code> and <code>deque</code>, is not a part of the 
+    C++ standard. In the current version <code>sequence</code> supports random access iterators only.
+    </p>
+    <p>3. The <code>sequence</code> member functions <code>capacity()</code> and <code>reserve()</code> 
+    implement different behaviour. These two member functions are related to memory management rather 
+    than to the properties of a container and its elements. For containers of the namespace 
+    <code>container_bptree</code>, which implement dynamically allocated data structures, memory 
+    management is a responsibility of allocators.
+    </p>
+    <p>4. All interface member functions <code>sequence::splice()</code> have different signatures, 
+    since these functions invalidate input random access iterators. Each variant of the function 
+    <code>splice()</code> returns a valid iterator, which points to the same element as the input 
+    iterator, but provides a correct value of the distance to the first element in a container. 
+    The current implementations of the functions <code>splice()</code> have in the worst case cost 
+    <i>O(NlogN)</i>, which is much higher than that of <code>std::list</code>.  In theory, B+ trees 
+    can support these functions with logarithmic cost.
+    </p>
+    <p>5. Access to <code>sequence</code> elements through the subscript <code>operator[ ]</code> or 
+    the member function <code>at()</code> has complexity <i>O(log N)</i> in the worst case. The total 
+    cost of sequential processing of all container elements through this operator and member function 
+    can reach <i>O(N log N)</i>.
+    </p>
+    <p>For better performance algorithms, which process all or a large number of consecutive container 
+    elements, should use sequential access through an iterator, which has cost <i>O(N)</i>. This method 
+    also has the advantage of the development of generic solutions, since it can be used not only with 
+    <code>sequence</code>, but also with STL variants of associative containers.
+    </p>
+    <p>6. The operators <code>{+=, -=, +, -}</code>, which change the position of a random access iterator, 
+    in the worst case have computational cost <i>O(log N)</i>.
+    </p>
+    <p>7. Classes of random access iterators include the following member functions to check the states 
+    of objects:
+    </p>
+    <pre>
+    bool valid_data()    const ; 
+    bool valid_mapping() const ; 
+</pre>
+    <p>If possible, valid mapping can be restored using the member functions:
+    </p>
+    <pre>
+    void update_index()  ; 
+    void update_pointer(); 
+</pre>
+    <p>It is important to note that the straight forward replacement of STL types in existing C++ code 
+    with containers and iterators of the namespace <code>container_bptree</code> is not safe in general 
+    and should be thoroughly tested. The problems can be caused not only by different signatures of 
+    interface member functions of container classes, but also by changing iterator category from 
+    bidirectional to random access. In a generic solution a random access iterator can be invalidated by 
+    operations, which change the size of a container. The new member functions of iterator classes provide 
+    efficient support to deal with these problems. They have logarithmic cost in the worst case. For more 
+    details, see the section <a href="iterators.html">Random access iterators</a>.
+    </p>
+    <p>8. Each STL variant of a container of the namespace <code>container_bptree</code> includes 
+    the new member function
+    </p>
+    <pre>
+    value_type  
+    accumulate ( const_iterator  pos_start ,
+                 const_iterator  pos_end   ,
+                 value_type      val_in    ) const ;
+</pre>
+    <p>These functions implement algorithms, which provide the same result as the STL method 
+    <code>std::accumulate()</code>. For the containers based on the class <code>bp_tree_idx_acc</code> 
+    this function has computational complexity <i>O(log N)</i> in the worst case, while for 
+    the two other basic containers it is <i>O(N)</i>, where <i>N</i> is the number of consecutive 
+    elements specified by the input iterators.
+    </p>
+    <p>9. The non-standard member function
+    </p>
+    <pre>
+    std::pair&lt;iterator, bool&gt;    
+    write ( iterator  pos , const value_type &  val_new ) ;
+</pre>
+    <p>has been added to address the problem of the invalidation of data structures and containers 
+    of the namespace <code>container_bptree</code>, which can be caused by write operations. 
+    The function returns an object of <code>std::pair&lt;iterator, bool&gt;</code> with the 
+    following values. If a container was modified, <code>bool</code> component returns 
+    <code>true</code> and <code>iterator</code> component  points to the element with the new value, 
+    otherwise <code>bool</code> component returns <code>false</code> and <code>iterator</code> 
+    component points to an element with a value, which is equivalent to the input value. This function 
+    has computational complexity <i>O(log N)</i> in the worst case. For more details, 
+    see the section <a href="write.html">Restrictions on write operations</a>.     
+    </p>
+    <p>10. In the classes of associative containers <code>set</code>, <code>mulitset</code>, <code>map</code> 
+    and <code>multimap</code> each member function
+    </p>
+    <pre>
+    iterator  erase ( iterator  pos   ) ;
+    iterator  erase ( iterator  pos_a ,
+                      iterator  pos_b ) ;
+</pre>
+    <p>returns a valid iterator that points to the element, which is next to the last erased element 
+    (<code>++pos</code> or <code>pos_b</code>) and takes the position of the first erased element 
+    (<code>pos</code> or <code>pos_a</code>), or <code>container.end()</code>. 
+    </p>
+    <p>This signature of interface functions better suits containers with random access iterators, 
+    since it improves the safety and efficiency of user algorithms. It makes interfaces of associative 
+    containers more consistent with STL sequences (<code>vector</code> or <code>list</code>) and provides 
+    the advantage of developing generic algorithms. This signature also makes the interfaces of containers 
+    more symmetric, since many STL containers have the matching member function
+    </p>
+    <pre>
+    iterator  insert ( iterator pos, const value_type & val_x ) ;    
+</pre>
+    <p>which returns an iterator.
+    </p>
+    
+  <hr>
+
+  <p><a href="http://validator.w3.org/check?uri=referer"><img border="0" src=
+  "images/valid-html401.png" alt="Valid HTML 4.01 Transitional"
+  height="31" width="88"></a></p>
+
+  <p>Revised 
+  <!--webbot bot="Timestamp" s-type="EDITED" s-format="%d %B, %Y" startspan -->
+  27 November, 2011<!--webbot bot="Timestamp" endspan i-checksum="38514" --></p>
+
+  <p><i>Copyright &copy; 2011</i> 
+  <a href="mailto:vadimstdk@gmail.com"><i>Vadim Stadnik</i><br>(vadimstdk@gmail.com)</a>
+  </p>
+
+  <p><i>Distributed under the Boost Software License, Version 1.0. (See
+  accompanying file <a href="images/LICENSE_1_0.txt">LICENSE_1_0.txt</a> or
+  copy at <a href=
+  "http://www.boost.org/LICENSE_1_0.txt">http://www.boost.org/LICENSE_1_0.txt</a>)</i></p>
+
+  <hr>  
+  <div align="right">
+    <a href="examples.html"><img src="images/prev.png" border=0 alt="Prev"></a>  
+    <a href="../index.html"><img src="images/up.png" border=0 alt="Up"></a>
+    <a href="../index.html"><img src="images/home.png" border=0 alt="Home"></a>
+    <a href="bp_trees.html"><img src="images/next.png" border=0 alt="Next"></a>    
+  </div> 
+
+</body>
+</html>

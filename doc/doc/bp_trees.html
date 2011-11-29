@@ -1,0 +1,335 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html>
+<head>
+  <meta http-equiv="Content-Language" content="en-us">
+  <meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+  <link rel="stylesheet" type="text/css" href="../../../boost.css">
+
+  <title>Container_bptree - bp_trees</title>
+    <style type="text/css">
+        .style1
+        {
+            width: 100%;
+            height: 16px;
+        }
+        .style2
+        {
+            width: 22px;
+        }
+    </style>
+</head>
+
+<body link="#0000FF" vlink="#800080">
+  <table border="0" cellpadding="7" cellspacing="0" width="100%" summary=
+  "header">
+    <tr>
+      <td valign="top" width="300">
+        <h3><a href="../../../index.htm"><img height="86" width="277" alt=
+        "C++ Boost" src="images/boost.png" border="0"></a></h3>
+      </td>
+
+      <td valign="top">
+        <h1 align="center">Container_bptree</h1>
+
+        <h2 align="center">Design and implementation of B+ trees </h2>
+      </td>
+    </tr>
+  </table>
+  <hr>
+  <div align="right">
+    <a href="differences.html"><img src="images/prev.png" border=0 alt="Prev"></a>
+    <a href="../index.html"><img src="images/up.png" border=0 alt="Up"></a>
+    <a href="../index.html"><img src="images/home.png" border=0 alt="Home"></a>
+    <a href="write.html"><img src="images/next.png" border=0 alt="Next"></a>    
+  </div> 
+
+    <p>This section provides a brief discussion of the properties and implementation 
+    details of B+ trees of the namespace <code>container_bptree</code>. It aims to help 
+    programmers to better understand the specifics of new containers and how to use 
+    them in algorithms.
+    </p>
+    <h3>Advantages of B+ trees
+    </h3>  
+    <p>A B+ tree is a data structure, which supports efficient search, retrieval and 
+    update operations of stored information. A B+ tree can be regarded as an improved 
+    variant of a B-tree, which was originally developed for systems with external 
+    storage [<a href="bibliography.html">2</a>]. 
+    </p>
+    <p>The main problem of these B-trees is their inefficiency in range queries and 
+    sequential processing of data. In a B-tree representing a sorted list a tree 
+    traversal algorithm, which finds a next element, in the worst case visits 
+    <i>O(log N)</i> nodes at different levels of the tree. Crossing levels in these 
+    trees has a very high cost due to a huge difference in access time between 
+    the disks and RAM.
+    </p>
+    <p>For B-trees in main memory, as well as for red-black trees, the cost of crossing 
+    levels is significantly lower than in external storage trees and sequential processing 
+    is relatively fast. Nevertheless, the structure of nodes remains the same and some 
+    adjacent elements of a sorted list are connected through a path of length <i>O(log N)</i>. 
+    Thus, sequential processing in these trees is less efficient than in linear data 
+    structures, which guarantee that an algorithm can move to the next or previous 
+    element in constant time. 
+    </p>
+    <p>A B+ tree solves these efficiency problems by combining two data structures with 
+    different properties. User data are stored in a linear structure such as a linked list, 
+    which implements simple and efficient sequential access to the data. The other data 
+    structure is a B-tree, which is connected to the linear structure. This tree stores only 
+    keys and supports fast search and random access to the data.
+    </p>
+    <p>In systems for external searching B+ trees can have very complex structures; 
+    for example, one node can implement another data structure such as a binary search tree. 
+    A B+ tree designed to work in main memory can be implemented as a dynamically allocated 
+    data structure with the complexity reduced to minimal in order to support required 
+    algorithms and interfaces only. All B+ trees of the namespace <code>container_bptree</code> 
+    are level-linked variants of this data structure, 
+    for more details see [<a href="bibliography.html">3</a>] and below. 
+    Level-linked B+ trees are particularly attractive for the development of new STL 
+    variants of containers, since they can be implemented in RAM using simple linear 
+    topologies of linked lists not only for external nodes, but also for any other level 
+    of a tree. Thus, algorithms gain the advantage of efficient access to data stored 
+    in both external and internal nodes.
+    </p>
+    <h3>Types of internal and external nodes
+    </h3>
+    <p>The implementation of a B+ tree requires different types of nodes, since user data 
+    are stored only in external nodes arranged into a linear data structure. In B+ trees 
+    of the namespace <code>container_bptree</code> an external node is represented by a type, 
+    which is named light node. A node of this type stores the minimum of required data: 
+    a container element and three links to neighbour nodes. An internal node is represented 
+    by a heavy node. A node of this type contains four links to support a level-linked 
+    variant of a B+ tree and special implementation data, which improve the performance 
+    of algorithms. Instead of a key, a heavy node stores a pointer to a light node. 
+    This pointer is used both for connectivity and for access to a container element.
+    </p>
+    <p>The name heavy node has been selected, since a node of this type stores more 
+    information than a light node. Nevertheless, in applications it is possible that a 
+    light node requires more space than a heavy node. The size of a light node depends 
+    on the size of a container element stored in the node, whereas the size of a heavy 
+    node is constant, since this node includes only a pointer to a light node.
+    </p>
+    <h3>Connectivity of nodes
+    </h3>
+    <p>The B+ trees of the namespace <code>container_bptree</code> are implemented as 
+    multi-linked data structures using a representation similar to leftmost child, 
+    right sibling representation of a multi-way tree. Each internal node of these B+ trees 
+    contains four links pointing to its right sibling, left sibling, parent and leftmost 
+    child. This connectivity arranges the children of each node into a doubly linked list 
+    and gives the advantage of simple and fast sequential access to data in these nodes. 
+    External nodes, which are children of an internal node, are also arranged into a 
+    doubly linked list. Unlike internal nodes, external nodes do not contain redundant 
+    links to children; however, they support links to parents. This type of link improves 
+    the efficiency of the bottom up processing, which updates cached algorithmic data in 
+    internal nodes, when a tree is modified. An internal node can be a parent to the 
+    children, which are a group of either internal or external nodes. In the latter case, 
+    a link to the leftmost child is supported through a pointer to an external node, which 
+    is also used to obtain a value of a container element.    
+    </p>                
+    <h3>Balance
+    </h3>
+    <p>For a B+ tree with a minimum degree of a node <i>t</i> (<i>t</i> >= 2) the bounds 
+    on the number of children are defined and implemented as follows. Each internal node 
+    can have at most 2<i>t</i> children and at least <i>t</i> children. The number of 
+    children for an internal node can be less than <i>t</i> if this node is the root, 
+    including the case when the total number of user elements stored in external nodes 
+    is also less than <i>t</i>.    
+    </p>                
+    <h3>Level-linked structure
+    </h3>
+    <p>In a B+ tree all external nodes have the same depth. This property makes a B+ tree 
+    globally balanced and allows the modification of the structure, which is known as a 
+    level-linked B+ tree [<a href="bibliography.html">3</a>]. A B+ tree of this type 
+    arranges internal nodes of one level into a linked list.
+    </p>                
+    <p>In current implementation of the namespace <code>container_bptree</code>, in order to 
+    make a B+ tree level-linked, it is sufficient to connect the rightmost internal node 
+    of a child group with the leftmost internal node of the next child group at the same 
+    level. The deepest level of the tree is a doubly linked list with user data stored in 
+    external nodes. Thus, the whole data structure looks like a set of parallel horizontal 
+    linked lists. Note also that, formally, level-linked B+ trees are graphs.
+    </p>
+    <p>Level-linked connectivity provides algorithms the advantage of efficient sequential 
+    access to internal nodes and to data stored in these nodes at every level of the tree. 
+    It reduces the maximum cost of visiting a neighbour node at the same level from 
+    <i>O(log N)</i> using a tree traversal algorithm to <i>O(1)</i> using a level link.
+    </p>
+    <p>As an algorithm moves up the tree, the number of nodes in every level decreases with 
+    the mean frequency 3<i>t</i>/2. At the same time, the number of external nodes with 
+    container elements connected to an internal node through child-parent links increases 
+    by the same factor. Thus, an algorithm can use the upper levels of the tree in order to 
+    vary the length and precision of the data iteration step between two internal nodes of 
+    the same level.
+    </p>
+    <h3>Data scheme
+    </h3>
+    <p>One of the attractive properties of B+ trees is a high degree of freedom in choosing 
+    formats and specific implementation data, which can be stored in internal nodes, in order 
+    to improve the performance of search algorithms. This property allows various schemes of 
+    data association with internal nodes, leaving an unmodified structure of external nodes 
+    with user information. In particular, some variants of B+ trees for external searching 
+    store small size keys, which are not necessarily exact values of corresponding data. This 
+    approach increases the amount of information stored in internal nodes, reduces the frequency 
+    of disk read operations and thus improves performance of these systems. Although the choice 
+    of a data scheme has some effect on the space usage, it does not change the theoretical limit 
+    of the space requirement to store a B+ tree, which is <i>O(N)</i>. Balanced B+ trees grow 
+    and contract in the same way regardless of a specific data scheme.    
+    </p>                            
+    <p>The B+ trees of the namespace <code>container_bptree</code> are designed to extend 
+    functionality of search trees. This is why, in contrast to space optimized search trees, 
+    internal nodes of these B+ trees store additional implementation data, which are used by 
+    new algorithms. The new functionality and improved efficiency are achieved at the cost of 
+    the increased space requirement.
+    </p>
+    <p>The other feature of the selected data scheme, which also results in an additional space 
+    usage, is a partial duplication of data in internal nodes, since a parent node and its 
+    leftmost child point to the same node and container element in a list of external nodes. 
+    This data scheme particularly suits well the level-linked structure of B+ trees of the 
+    namespace <code>container_bptree</code>. It is probably a bit simpler for the implementation 
+    of STL variants of containers and algorithms than the standard data scheme used in 
+    search B and B+ trees [<a href="bibliography.html">2</a>]. 
+    </p>
+    <p>Storing additional data in internal nodes and hence losing space is justified only if 
+    this can make an improvement to an algorithm. The first means by which the B+ trees of 
+    the namespace <code>container_bptree</code> improve performance is that they store only those 
+    data, which make redundant calculations and re-calculations of data used by an algorithm. 
+    This method applies the technique, which is described in [<a href="bibliography.html">4</a>], 
+    see the chapter &quot;Augmenting Data Structures&quot;. The second means is the use of efficient access 
+    to the pre-calculated data through the level-linked structure of a B+ tree.
+    </p>
+    <p>In every B+ tree of the namespace <code>container_bptree</code> an internal node contains 
+    a data member, which is a counter of the nodes of the tree. This counter has different 
+    purposes in these data structures. 
+    </p>
+    <p>In the class <code>bp_tree</code> this datum represents the number of children, which 
+    can be a group of either internal or external nodes. 
+    </p>
+    <p>In the classes <code>bp_tree_idx</code> and <code>bp_tree_idx_acc</code> this counter 
+    represents the number of external nodes with user elements stored in a container. For internal 
+    nodes the value of this parameter in a parent node is equal to the sum of counters stored in 
+    its children. For the deepest level of internal nodes this parameter represents the number of 
+    children in a group of external nodes. This detail is useful to improve the performance of 
+    methods, which modify trees of the namespace <code>container_bptree</code>.
+    </p>
+    <p>The values of the counters of container elements, which are stored in internal nodes, reflect 
+    the structural relationships between the nodes of the tree. These values are independent of 
+    specific user data stored in the nodes of the tree. An algorithm can efficiently obtain and update 
+    these counters using links between nodes of the tree. The counters data along with the connectivity 
+    of nodes can be regarded as an independent substructure of indices. This substructure provides 
+    efficient support for algorithms, which require an index value of a container element, and for 
+    random access iterators.
+    </p>                
+    <p>STL variants of containers based on the class <code>bp_tree_idx_acc</code> support the 
+    efficient algorithm <code>accumulate()</code>, which has computational cost <i>O(log N)</i> 
+    in the worst case. This performance has been achieved by adding to every internal node a 
+    new datum, which represents a sum of consecutive elements stored in external nodes. For the 
+    deepest level of internal nodes a parent stores a sum of values of the container elements of 
+    its external child nodes. For all other levels of the internal nodes of the tree every parent 
+    stores a sum, which is equal to a sum of sum values stored in its children. When an algorithm 
+    moves up the tree from a child to its parent, it obtains a sum value of a quickly increasing 
+    number of container elements stored in external nodes.
+    </p>
+    <p>
+    <img alt="" src="images/figure_1.png" style="height: 350px; width: 760px" />    
+    </p>
+    <table class="style1">
+        <tr>
+            <td class="style2">
+            </td>
+            <td>
+                <b>Figure 1.</b> The substructure of sums of a B+ tree of the 
+                namespace <code>container_bptree</code>.                 
+                <br />
+                Squares represent external nodes with values of container elements, 
+                circles - internal nodes, solid lines - undirected edges, arrows - directed 
+                child-parent edges. A value in an internal parent node is a sum of values 
+                shown in its children.                
+            </td>
+        </tr>
+    </table>
+    <p>
+    Unlike the substructure of indices, the substructure of sums depends on the values of 
+    container elements stored in the external nodes of the tree. However, specific values of 
+    sum data in internal nodes are also affected by the structural relationship between nodes. 
+    For this reason, the substructures of indices and sums have a very close similarity. In the 
+    case when each element of a container has the value 1, these two substructures become identical. 
+    In this respect, the substructure of sums supersedes the substructures of indices.
+    </p>
+    <p>The ability of the class <code>bp_tree_idx_acc</code> to simultaneously support two 
+    substructures of two data sets associated with container elements enables the development 
+    of more efficient algorithms and solutions. For examples using both index and sum substructures, 
+    see the discussion of the efficient algorithm <code>accumulate()</code> in the next section 
+    &quot;Basic Algorithms&quot;  and the discussion regarding the calculation of the mean value 
+    in the section <a href="containers.html">Classes of containers and B+ trees</a>. 
+    </p>
+    <h3>Basic Algorithms
+    </h3>
+    <p>
+    In every B+ tree of the namespace <code>container_bptree</code> insert and erase methods 
+    for a single element are typical bottom up algorithms, which have computational cost 
+    <i>O(log N)</i> in the worst case [<a href="bibliography.html">2</a>]. 
+    The only specific requirements to these methods are that they must maintain valid algorithm 
+    data stored in internal nodes as described in [<a href="bibliography.html">4</a>]. 
+    Search methods are top down algorithms with the same logarithmic cost.
+    </p>                
+    <p>The class <code>bp_tree_idx_acc</code> implements the algorithm <code>accumulate()</code>, 
+    which has logarithmic computational cost in the worst case. This algorithm is basically a finger 
+    search [<a href="bibliography.html">3</a>], which takes advantage of the level-linked structure of this B+ tree. The start and 
+    end positions of container elements are specified by two input iterators, which provide pointers 
+    to corresponding external nodes. The algorithm uses a substructure of indices in order to find 
+    between these two external nodes a path, which has the minimum or close to the minimum number 
+    of edges. For distant external nodes the path goes through internal nodes, which store 
+    pre-calculated sums of container elements. The required sum of consecutive elements is obtained 
+    by summing up values of elements in external nodes and cached sum values in internal nodes 
+    when this algorithm moves to a next node at the same level of a tree or, in other words, passes 
+    through a horizontal link.
+    </p>
+    <p>Note that one implementation of the member function <code>bp_tree_idx_acc::accumulate()</code> 
+    supports all STL variants of containers: ordered and unordered, with unique and multiple values 
+    of elements. This implementation is generic, because it takes advantage of the substructure of 
+    efficient indexing, which maps non-negative integers into container elements. Thus, at the 
+    implementation level of this efficient algorithm any container is processed as a sequence. 
+    This algorithm is yet another demonstration of the powerful potential and effectiveness of the 
+    concept of a sequence in the practically important area of the support of STL containers and 
+    algorithms.
+    </p>     
+    <p>The finger search algorithm has cost <i>O(log D)</i>, where <i>D</i> is the number of 
+    consecutive container elements. This cost is better than the cost of a tree search, which 
+    is <i>O(log N)</i>, where <i>N</i> is the number of container elements. This fact makes the 
+    alternative search based algorithm <code>accumulate()</code> less efficient than the finger 
+    search algorithm. However, performance is not the main reason why this algorithm has been 
+    selected to implement the fast member function <code>accumulate()</code>. For practical 
+    applications, it is very important to calculate a sum of elements with the best possible 
+    accuracy. The finger search algorithm provides the accuracy, which is practically the same as 
+    that of standard algorithm <code>accumulate()</code>, which sums up values of container 
+    elements in a sequential order.
+    </p>
+    
+  <hr>
+
+  <p><a href="http://validator.w3.org/check?uri=referer"><img border="0" src=
+  "images/valid-html401.png" alt="Valid HTML 4.01 Transitional"
+  height="31" width="88"></a></p>
+
+  <p>Revised 
+  <!--webbot bot="Timestamp" s-type="EDITED" s-format="%d %B, %Y" startspan -->
+  27 November, 2011<!--webbot bot="Timestamp" endspan i-checksum="38514" --></p>
+
+  <p><i>Copyright &copy; 2011</i> 
+  <a href="mailto:vadimstdk@gmail.com"><i>Vadim Stadnik</i><br>(vadimstdk@gmail.com)</a>
+  </p>
+
+  <p><i>Distributed under the Boost Software License, Version 1.0. (See
+  accompanying file <a href="images/LICENSE_1_0.txt">LICENSE_1_0.txt</a> or
+  copy at <a href=
+  "http://www.boost.org/LICENSE_1_0.txt">http://www.boost.org/LICENSE_1_0.txt</a>)</i></p>
+
+  <hr>  
+  <div align="right">
+    <a href="differences.html"><img src="images/prev.png" border=0 alt="Prev"></a>
+    <a href="../index.html"><img src="images/up.png" border=0 alt="Up"></a>
+    <a href="../index.html"><img src="images/home.png" border=0 alt="Home"></a>
+    <a href="write.html"><img src="images/next.png" border=0 alt="Next"></a>    
+  </div> 
+
+</body>
+</html>

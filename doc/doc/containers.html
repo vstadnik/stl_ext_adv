@@ -1,0 +1,356 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html>
+<head>
+  <meta http-equiv="Content-Language" content="en-us">
+  <meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+  <link rel="stylesheet" type="text/css" href="../../../boost.css">
+
+  <title>Container_bptree - containers</title>
+    <style type="text/css">
+        .style1
+        {
+            width: 100%;
+            height: 16px;
+        }
+        .style2
+        {
+            width: 22px;
+        }
+    </style>
+</head>
+
+<body link="#0000FF" vlink="#800080">
+  <table border="0" cellpadding="7" cellspacing="0" width="100%" summary=
+  "header">
+    <tr>
+      <td valign="top" width="300">
+        <h3><a href="../../../index.htm"><img height="86" width="277" alt=
+        "C++ Boost" src="images/boost.png" border="0"></a></h3>
+      </td>
+
+      <td valign="top">
+        <h1 align="center">Container_bptree</h1>
+
+        <h2 align="center">Classes of containers and B+ trees</h2>
+      </td>
+    </tr>
+  </table>
+  <hr>
+  <div align="right">
+    <a href="extensions.html"><img src="images/prev.png" border=0 alt="Prev"></a>
+    <a href="../index.html"><img src="images/up.png" border=0 alt="Up"></a>
+    <a href="../index.html"><img src="images/home.png" border=0 alt="Home"></a>
+    <a href="examples.html"><img src="images/next.png" border=0 alt="Next"></a>            
+  </div> 
+
+    <p>The class templates of associative containers of the namespace 
+    <code>container_bptree</code>:
+    </p>
+    <pre>
+    map      , 
+    multimap , 
+    set      , 
+    multiset
+</pre>
+    <p>provide variants of interfaces of corresponding STL containers.
+    </p>
+    <p>The class <code>container_bptree::sequence</code> defines a union of interfaces 
+    of three STL containers <code>vector</code>, <code>list</code> and <code>deque</code>. 
+    This new class can be used in algorithms, which require any of these STL containers.
+    </p>
+    <p>All of the classes listed above are container adapters. A template-argument for 
+    a template-parameter of a basic container type can be one of the following classes:
+    </p>
+    <pre>
+    bp_tree         , 
+    bp_tree_idx     , 
+    bp_tree_idx_acc ; 
+</pre>
+    <p>Abbreviations used in the names of these classes are explained as follows:
+    </p>
+    <table class="style1">
+        <tr>
+            <td class="style2">
+            </td>
+            <td>
+                <code>&quot;idx&quot; - </code>&quot;support for efficient indexing of container elements&quot;<br />
+                <code>&quot;acc&quot; - </code>&quot;support for efficient algorithm <code>accumulate()</code>&quot;
+            </td>
+        </tr>
+    </table>
+    <p>Every basic container implements a specific B+ tree with properties, interface 
+    functions and iterators, which define a number of STL variants of instantiated containers 
+    and their performance. These B+ trees have been adjusted to provide the best possible 
+    support for container adapters of the namespace <code>container_bptree</code>. For this 
+    reason, classes of these basic containers may not be safe enough when used in algorithms 
+    directly.
+    </p>
+    <p>The current version of the library <code>container_bptree</code> can be used to 
+    generate 14 variants of STL containers shown in the next table. 
+    </p>    
+    
+    <table border=1 cellpadding="4" frame="box">        
+    <caption>STL variants of containers based on B+ trees</caption>
+    <tr>
+        <td></td>
+        <td align="right"><code>map</code></td>
+        <td align="right"><code>multimap</code></td>        
+        <td align="right"><code>set</code></td>
+        <td align="right"><code>multiset</code></td>
+        <td align="right"><code>sequence</code></td>
+    </tr>
+    <tr>
+        <td><code>bp_tree</code></td>
+        <td align="center">+</td>
+        <td align="center">+</td>
+        <td align="center">+</td>
+        <td align="center">+</td>
+        <td align="center"></td>        
+    </tr>
+    <tr>
+        <td><code>bp_tree_idx</code></td>
+        <td align="center">+</td>
+        <td align="center">+</td>
+        <td align="center">+</td>
+        <td align="center">+</td>
+        <td align="center">+</td>        
+    </tr>
+    <tr>
+        <td><code>bp_tree_idx_acc</code></td>
+        <td align="center">+</td>
+        <td align="center">+</td>
+        <td align="center">+</td>
+        <td align="center">+</td>
+        <td align="center">+</td>        
+    </tr>
+    </table>
+    
+    <p> 
+    For examples on how to use these class templates to generate classes of STL variants of 
+    containers, see the code in the file <code>&quot;test_container.hpp&quot;</code> and 
+    the section <a href="examples.html">Examples</a>. 
+    </p>
+    <p>All of the basic containers of the namespace <code>container_bptree</code> provide 
+    the same efficiency of sequential access to data and the same logarithmic complexity 
+    of the main operations that insert, erase and find a single element of a container. 
+    Thus, the best specific application areas for these containers are defined mostly by the 
+    category of iterators and the improved efficiency of the algorithm 
+    <code>accumulate()</code>.
+    </p>
+    
+    <h3>Class bp_tree
+    </h3>    
+    
+    <p>The class <code>bp_tree</code> represents a B+ tree, which supports the main 
+    operations of a search tree such as a B-tree or a red-black tree, but provides more 
+    efficient sequential access to container elements. This class implements bidirectional 
+    iterators, which have constant cost of increment and decrement operators in the worst 
+    case. Containers of the namespace <code>container_bptree</code> based on the 
+    class <code>bp_tree</code> will improve the performance of algorithms, which require 
+    efficient search and update operations along with sequential access to data stored 
+    in these containers. Bidirectional iterators also have another important property, 
+    which is often required in algorithms, namely that container update operations do not 
+    invalidate these iterators.
+    </p>
+    <p>The class <code>bp_tree</code> supports STL variants of associative containers, 
+    but it does not support the class <code>container_bptree::sequence</code> due to the 
+    inefficiency of bidirectional iterators. The new classes of associative containers 
+    are close equivalents of corresponding container classes of the C++ standard library, 
+    which are normally based on red-black trees.
+    </p>
+    <p>The class <code>bp_tree</code> supports the same interfaces as other types of 
+    B+ trees of the namespace <code>container_bptree</code>. This approach improves 
+    the consistency of containers interfaces and extends the set of options available 
+    for the development of generic solutions. However, the new containers of the namespace 
+    <code>container_bptree</code> implement interfaces, which are somewhat different 
+    from STL. Consequently, in some algorithms these containers cannot be replaced 
+    directly by corresponding STL containers.
+    </p>
+    
+    <h3>Class bp_tree_idx
+    </h3>    
+    
+    <p>The class <code>bp_tree_idx</code> provides the optimized support for sequence 
+    containers; thus, it can be used to generate an STL variant of a container class 
+    from any container adapter. The main additional feature of the data structure 
+    implemented in this class is efficient mapping of non-negative integers into 
+    elements of a container. Any STL variant of a container using the class 
+    <code>bp_tree_idx</code> obtains random access iterators with the cost of many 
+    operators practically the same as that of iterators of <code>std::vector</code>.
+    </p>
+    <p>It is necessary to note that the support of random access iterators enables algorithms 
+    to use a corresponding container as an efficient sequence even when this container does not 
+    provide direct access to mapping of non-negative integers into container elements through 
+    the subscript <code>operator[]</code> and the member function <code>at()</code>, which 
+    represent a traditional and widely used mathematical form of this mapping in C++. 
+    A random access iterator can represent a position of an element in a sequence, 
+    since it supports the semantics of not only pointers, but also integer types. 
+    Algorithms based on random access iterators of the namespace <code>container_bptree</code> 
+    gain the advantage of extended functionality and improved safety. For more details, 
+    see the section <a href="iterators.html">Random access iterators</a>. 
+    </p>            
+    <p>The C++ standard library expands its application area by providing various types of 
+    optimized containers [<a href="bibliography.html">1</a>]. In particular, it includes three sequences: <code>vector</code>, 
+    <code>deque</code> and <code>list</code>, since each of these has a limited application 
+    area due to having at least one inefficient operation with linear running time. 
+    For <code>vector</code> and <code>deque</code>, these are the member functions 
+    <code>insert()</code> and <code>erase()</code> for a single element. <code>list</code> 
+    and associative containers support bidirectional iterators, which are inefficient in 
+    algorithms that access elements at random positions.
+    </p>
+    <p>The class <code>bp_tree_idx</code> provides efficient access to data through random 
+    access iterators as well as basic insert and erase methods with logarithmic computational 
+    cost. This is why STL variants of containers based on the class <code>bp_tree_idx</code> 
+    may improve the performance of algorithms using standard containers with at least one 
+    inefficient operation, which has linear running time. In the general case, the wider 
+    the variety of operations, which are required in a user algorithm, the more significant 
+    should be the performance improvement provided by new containers. The containers 
+    with efficient indexing of elements and random access iterators should be particularly 
+    useful in algorithms, which in addition to sequential processing frequently insert, 
+    erase and access elements at random positions in a container.
+    </p> 
+    <p>The sequences based on the class <code>bp_tree_idx</code> extend support for algorithms, 
+    which is provided by STL. The sequences of the C++ standard library (<code>vector</code>, 
+    <code>deque</code> and <code>list</code>) implement different interfaces. This fact 
+    narrows the application area of these standard containers. The class <code>sequence</code> 
+    of the namespace <code>container_bptree</code> implements a union of STL sequences. 
+    Thus, if required, a new sequence container can replace any STL sequence. The increase 
+    in the number of sequence containers supporting STL interfaces is beneficial for the 
+    development of algorithms, which require a wide set of basic sequence operations and 
+    methods. The new sequences have the potential to take place of the second best choice 
+    after <code>vector</code>, which rerpesents default STL sequence.     
+    </p>
+    <p>As for associative containers and algorithms using the class <code>bp_tree_idx</code>, 
+    they can also obtain a significant advantage of the more general sequence support and 
+    more efficient random access iterators. For example, the member function 
+    <code>count()</code> of new associative containers with random access iterators returns 
+    the number of elements with key <i>k</i> for <i>O(log N)</i> time. For STL containers with 
+    bidirectional iterators the same result can be obtained for <i>O(K + log N)</i> time, 
+    where <i>N</i> is the number of elements in a container and <i>K</i> is the number of 
+    elements with key <i>k</i>. The section <a href="examples.html">Examples</a> shows how to 
+    find the number of intersections of one interval with a sequence of intervals in 
+    <i>O(log N)</i> time using new associative containers with random access iterators. 
+    </p> 
+    
+    <h3>Class bp_tree_idx_acc
+    </h3>    
+    
+    <p>The class <code>bp_tree_idx_acc</code> supports interface containers with random 
+    access iterators and adds support for the efficient algorithm <code>accumulate()</code>, 
+    which has computational cost <i>O(log N)</i> in the worst case, where <i>N</i> is the 
+    number of consecutive elements within a range specified by input iterators. This class 
+    can be used as a basic container for sequences and associative containers of the 
+    namespace <code>container_bptree</code>. The class <code>bp_tree_idx_acc</code> requires 
+    that the operators <code>+, -, +=, -=</code> be defined for the type of the container 
+    element and assumes that the cost of these operators is <i>O(1)</i>.
+    </p>
+    <p>The STL function <code>accumulate()</code> represents a generalized algorithm, which 
+    calculates a result of a binary operation applied to a sequence of elements. In 
+    particular, this algorithm is fundamental to many numerical applications, which require 
+    the calculation of the sum of the values of consecutive container elements. The STL 
+    variants of containers based on the class <code>bp_tree_idx_acc</code> can be directly 
+    used in application areas such as:
+    </p>         
+    <ul>
+    <li>sum of elements ;
+    <li>length of a curve ;
+    <li>area under a curve ;
+    <li>integral of a function ;
+    <li>statistics ;
+    <li>data analysis ;
+    </ul>    
+    <p>For other binary operations such as multiply and divide an algorithm can define a 
+    type, which provides corresponding operations through operators <code>+, -, +=, -=</code> 
+    of the container element of the class <code>bp_tree_idx_acc</code>. The definition of 
+    such operations must be mathematically correct. An algorithm using such types should 
+    make sure to insert into a container only valid elements, which do not cause a problem 
+    like division by zero. The precision of the element type should be sufficient to avoid 
+    overflow and underflow errors, and to reduce loss of accuracy of a user algorithm 
+    to a specified limit.
+    </p>
+    <p>Since each update operation for a single element in a container with <i>N</i> elements 
+    has maximum cost <i>O(log N)</i>, an increase in the performance of a user algorithm can 
+    be even more significant if, in addition to calculating the sum of elements, it requires 
+    an improvement in accuracy through the insertion of correction data. The high efficiency 
+    of all interface operations and algorithms makes these STL variants of containers 
+    particularly attractive for adaptive numerical methods.
+    </p>
+    <h3>Mean value
+    </h3>    
+    <p>This example is quite simple and useful in numerous problems. It also demonstrates 
+    how the performance of an algorithm based on new containers is improved compared to 
+    C++ standard containers and algorithms.
+    </p>
+    <p>For any STL variant of a container, which uses the efficient algorithm 
+    <code>accumulate()</code> of the class <code>bp_tree_idx_acc</code>, the mean value of 
+    <i>N</i> consecutive elements can be determined as shown in this demo code:
+    </p>
+    <pre>
+    sum  = data_container . accumulate ( pos_start , pos_end , 0 ) ; 
+    n    = pos_end - pos_start ; 
+    mean = sum / n ;
+</pre>
+    <p>This method of calculation has the total cost of only <i>O(log N)</i> in the worst 
+    case. The mean value requires the calculation of two values: the sum of elements and 
+    the number of elements. The efficient algorithm <code>accumulate()</code> finds the first 
+    value for <i>O(log N)</i> steps. The cost associated with the second value is negligible, 
+    since random access iterators allow the determination of the number of consecutive 
+    elements in constant time.
+    </p>
+    <p>The support of random access iterators, which use efficient mapping of 
+    non-negative integers into container elements, is an important detail in achieving 
+    the low computational cost of the calculation of the mean value. If, for a example, a 
+    container would implement a fast algorithm <code>accumulate()</code> and bidirectional 
+    iterators, the total cost of the calculation of the mean value would increase to 
+    <i>O(N)</i> as a result of counting elements by the method
+    </p>
+    <pre>
+    n = std::distance ( pos_start , pos_end ) ;
+</pre>
+    <p>For STL containers the best performance of the calculation of the mean value can be 
+    achieved with <code>std::vector</code>, which supports random access iterators. A method 
+    based on this container has total cost <i>O(N)</i>, which is the cost of calculating 
+    the sum of elements using the STL method 
+    </p>
+    <pre>
+    sum = std::accumulate ( pos_start , pos_end , 0 ) ;
+</pre>
+    <p>New containers with the efficient algorithm <code>accumulate()</code> and random access 
+    iterators can be also used to simultaneously calculate the standard deviation of a data set 
+    along with the mean value in the same logarithmic time. This can be achieved by storing 
+    squared values in addition to the original values of the elements. The efficiency of the 
+    calculation of the second parameter of data comes at the cost of the increased space 
+    requirement. This and other more advanced applications of new containers are discussed 
+    in the next section <a href="examples.html">Examples</a>. 
+    </p>
+
+  <hr>
+
+  <p><a href="http://validator.w3.org/check?uri=referer"><img border="0" src=
+  "images/valid-html401.png" alt="Valid HTML 4.01 Transitional"
+  height="31" width="88"></a></p>
+
+  <p>Revised 
+  <!--webbot bot="Timestamp" s-type="EDITED" s-format="%d %B, %Y" startspan -->
+  27 November, 2011<!--webbot bot="Timestamp" endspan i-checksum="38514" --></p>
+
+  <p><i>Copyright &copy; 2011</i> 
+  <a href="mailto:vadimstdk@gmail.com"><i>Vadim Stadnik</i><br>(vadimstdk@gmail.com)</a>
+  </p>
+
+  <p><i>Distributed under the Boost Software License, Version 1.0. (See
+  accompanying file <a href="images/LICENSE_1_0.txt">LICENSE_1_0.txt</a> or
+  copy at <a href=
+  "http://www.boost.org/LICENSE_1_0.txt">http://www.boost.org/LICENSE_1_0.txt</a>)</i></p>
+
+  <hr>  
+  <div align="right">
+    <a href="extensions.html"><img src="images/prev.png" border=0 alt="Prev"></a>
+    <a href="../index.html"><img src="images/up.png" border=0 alt="Up"></a>
+    <a href="../index.html"><img src="images/home.png" border=0 alt="Home"></a>
+    <a href="examples.html"><img src="images/next.png" border=0 alt="Next"></a>        
+  </div> 
+
+</body>
+</html>

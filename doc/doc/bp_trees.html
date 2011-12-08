@@ -134,6 +134,95 @@
     including the case when the total number of user elements stored in external nodes 
     is also less than <i>t</i>.    
     </p>                
+    
+    <h3>Space requirement
+    </h3>
+    
+    <p>
+    This analysis can help estimate the memory consumption of the B+ trees of 
+    the namespace <code>container_bptree</code>. The obtained values of the space 
+    consumption can be compared with the values for other data structures to make 
+    the best choice of a data structure for a user algorithm. 
+    </p>                
+    <p>
+    The space requirement <code>sz_total</code> for a B+ trees of the namespace 
+    <code>container_bptree</code> is defined by the formula:     
+    </p>           
+    <pre>
+    sz_total = n_elems * sz_node_ext + n_int_nodes * sz_node_int ;     
+    </pre>
+    <p>
+    here <code>n_elems</code> is the number of elements of a container stored 
+    in external nodes of a B+ tree. The number of internal nodes <code>n_int_nodes</code> 
+    in the asymptotic limit is given by the sum of the geometric progression: 
+    </p>                
+    <pre>
+	n_int_nodes = n_elems / ( n_children - 1 ) ; 
+    </pre>        
+    <p>
+    For the worst case analysis the parameter <code>n_children</code> should be equal to 
+    the minimum degree of a B+ tree <i>t</i>. For the average value of <code>n_int_nodes</code> 
+    the parameter <code>n_children</code> is equal to ( <i>t</i> + 2<i>t</i> ) / 2 = 1.5<i>t</i>. 
+    </p>                
+    <p>    
+    The size of an external node <code>sz_node_ext</code> is the same for every 
+    variant of the B+ trees:    
+    </p>
+    <pre>
+    sz_node_ext = sz_element + 3*sz_pointer ;
+    </pre>        
+    <p>
+    The size of an internal node <code>sz_node_int</code> is specific to a B+ tree variant. 
+    In the current version of the library <code>container_bptree</code> it has the following values:     
+    </p>    
+    <pre>
+    sz_node_int_bp_tree         = 5*sz_pointer + sz_size_t ;
+    sz_node_int_bp_tree_idx     = sz_node_int_bp_tree ;
+    sz_node_int_bp_tree_idx_acc = sz_node_int_bp_tree_idx + sz_element ;
+    </pre>    
+    <p>
+    here:    
+    </p>
+    <pre>
+    sz_element - the size of a type of a container element,
+    sz_pointer - the size of a pointer,
+    sz_size_t  - the size of the type size_t .
+    </pre>    
+    <p>
+    For practical estimates of the space requirement for a B+ tree of the namespace 
+    <code>container_bptree</code> the following simplified model can be used. The minimum value 
+    can be obtained using the space consumption of external nodes only: 
+    <code>sz_total = n_elem*sz_node_ext</code>. 
+    </p>
+    <p>
+    For the second approximation the number of internal nodes can be set <code>0.1*n_elems</code>, 
+    since on average one internal node has <code>n_children = (8+16)/2 = 12</code>. Thus, the improved 
+    value of the space consumption can be calculated by the formula:    
+    </p>
+    <pre>
+    sz_total = n_elems * ( sz_node_ext + 0.1 * sz_node_int ) ;    
+    </pre> 
+    <p>
+    here the value of <code>sz_node_int</code> is specific to a B+ tree as discussed above.     
+    </p>
+    <p>
+    The increase in the space consumption <code>sz_augment</code> for the support of a new augmenting 
+    data element that is added to internal nodes only can be also estimated using ten per cent factor 
+    for the number of internal nodes:     
+    </p>
+    <pre>
+    sz_augment = 0.1 * n_elems * sz_aug_elem ;  
+    </pre>
+    <p>
+    here <code>sz_aug_elem</code> is the size of a type of an augmenting data element.     
+    </p>
+    <p>
+    The effect of the increased space requirement on the performance of the augmented B+ trees 
+    of the namespace <code>container_bptree</code> is discussed in the document 
+    <a href="performance.html">Performance of basic algorithms</a>, the section 
+    &quot;Effect of augmenting on performance of B+ trees&quot;. 
+    </p>
+    
     <h3>Level-linked structure
     </h3>
     <p>In a B+ tree all external nodes have the same depth. This property makes a B+ tree 
@@ -312,7 +401,7 @@
 
   <p>Revised 
   <!--webbot bot="Timestamp" s-type="EDITED" s-format="%d %B, %Y" startspan -->
-  27 November, 2011<!--webbot bot="Timestamp" endspan i-checksum="38514" --></p>
+  08 December, 2011<!--webbot bot="Timestamp" endspan i-checksum="38514" --></p>
 
   <p><i>Copyright &copy; 2011</i> 
   <a href="mailto:vadimstdk@gmail.com"><i>Vadim Stadnik</i><br>(vadimstdk@gmail.com)</a>

@@ -302,7 +302,7 @@ public:
     class iterator ;
     friend
     class iterator ;
-    typedef _iter_base_stl< std::bidirectional_iterator_tag,
+    typedef _iter_base_stl< std::random_access_iterator_tag,
                             value_type, difference_type, pointer, reference >
                             _iter_base_stl_alias ;
 

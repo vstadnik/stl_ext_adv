@@ -1,6 +1,6 @@
 /////////////////////////////////////////////////////////////////
 //
-//          Copyright Vadim Stadnik 2011.
+//          Copyright Vadim Stadnik 2011-2012.
 // Distributed under the Boost Software License, Version 1.0.
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
@@ -35,7 +35,7 @@ template
 class bp_tree
 {
 public:
-    typedef bp_tree<_Ty_Key, _Ty_Map, _Ty_Val, 
+    typedef bp_tree<_Ty_Key, _Ty_Map, _Ty_Val,
                     _KeyOfV, _MapOfV, _Pred  , _Alloc>
                                                 _Ty_This        ;
     typedef _Ty_Key                             key_type        ;
@@ -120,8 +120,8 @@ public:
         bool valid_data ( ) const     { return m_p_cont!=0 && m_ptr!=0 ; }
 
     protected:
-        _NodeLightPtr       _pointer ( )   const    { return m_ptr     ; }
-        const _Ty_This *    _container ( ) const    { return m_p_cont  ; }
+        _NodeLightPtr       _pointer ( )   const    { return m_ptr    ; }
+        const _Ty_This *    _container ( ) const    { return m_p_cont ; }
 
         void _increment ( ) { m_ptr = m_ptr->p_light_next ; }
         void _decrement ( ) { m_ptr = m_ptr->p_light_prev ; }
@@ -190,7 +190,6 @@ public:
     friend
     class const_iterator ;
 
-
     class const_iterator : public _iter_base_stl_alias
     {
     friend class bp_tree<_Ty_Key, _Ty_Map, _Ty_Val,
@@ -253,10 +252,11 @@ public:
                 insert ( const value_type &  elem_x ) ;
     iterator    insert ( iterator  pos , const value_type &  elem_x ) ;
     template <class _InpIter>
-    void        insert ( _InpIter  pos_a , _InpIter  pos_b )
-    {
-        while ( pos_a != pos_b )  { insert (*pos_a) ; ++pos_a ; }
-    }
+    void        insert_set ( _InpIter  pos_a , _InpIter  pos_b )
+                { _insert_iter_ordered ( pos_a , pos_b ) ; }
+    template <class _InpIter>
+    void        insert_map ( _InpIter  pos_a , _InpIter  pos_b )
+                { _insert_iter_ordered ( pos_a , pos_b ) ; }
 
     iterator    erase ( iterator         pos   ) ;
     iterator    erase ( iterator         pos_a ,
@@ -317,6 +317,36 @@ protected:
                                    _NodeLightPtr       p_lt_pos ) ;
     void     _insert_top_level ( ) ;
     void     _increase_tree_height ( ) ;
+
+    template <class _InpIter>
+    void _insert_iter_ordered ( _InpIter  pos_a , _InpIter  pos_b )
+    {
+        if ( this->empty() || !m_multi )
+        {
+            while ( pos_a != pos_b )
+            {
+                insert (*pos_a) ;
+                ++pos_a ;
+            }
+        }
+        else
+        {
+            _Ty_This    ctr_copy ( m_k_comp , m_multi , m_ordered , m_allr_ty_val ) ;
+            while ( pos_a != pos_b )
+            {
+                ctr_copy . insert (*pos_a) ;
+                ++pos_a ;
+            }
+
+            const_iterator  cur = ctr_copy . begin() ;
+            const_iterator  end = ctr_copy . end  () ;
+            while ( cur != end )
+            {
+                this->insert ( *cur ) ;
+                ++cur ;
+            }
+        }
+    }
 
     iterator _erase_bp_tree    ( iterator              pos       ) ;
     void     _erase_heavy_node ( _NodeHeavyPtr &       p_posn    ) ;

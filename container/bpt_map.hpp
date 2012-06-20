@@ -1,6 +1,6 @@
 /////////////////////////////////////////////////////////////////
 //
-//          Copyright Vadim Stadnik 2011.
+//          Copyright Vadim Stadnik 2011-2012.
 // Distributed under the Boost Software License, Version 1.0.
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
@@ -83,7 +83,7 @@ public:
           const key_compare &     pred=key_compare()    ,
           const allocator_type &  alr =allocator_type() ) :
         m_contr ( pred, false, true, alr )
-        { insert ( pos_a, pos_b ) ; }
+        { m_contr.insert_map ( pos_a , pos_b ) ; }
 
     map ( const _Ty_This &  that ) : m_contr ( that.m_contr ) { }
     _Ty_This &
@@ -119,7 +119,7 @@ public:
                 { return m_contr.insert(pos, val_x) ; }
     template < class _InpIter >
     void        insert ( _InpIter  pos_a, _InpIter  pos_b )
-                { m_contr.insert(pos_a, pos_b) ; }
+                { m_contr.insert_map(pos_a, pos_b) ; }
 
     void        clear ( )
                       { m_contr.clear() ; }
@@ -253,7 +253,6 @@ class multimap
                      Get1st<std::pair<const _K,_Ty>,const _K>,
                      Get2nd<std::pair<const _K,_Ty>,_Ty>, _Pr, _A >
                                                         _BPTreeType ;
-
 public:
     typedef multimap<_K, _Ty, _Pr, _A, _BPTree>         _Ty_This   ;
     typedef std::pair <const _K , _Ty >                 value_type ;
@@ -301,7 +300,7 @@ public:
                const key_compare &     pred=key_compare()    ,
                const allocator_type &  alr =allocator_type() ) :
         m_contr ( pred, true, true, alr )
-        { m_contr.insert ( pos_a, pos_b ) ; }
+        { m_contr.insert_map(pos_a, pos_b) ; }
 
     multimap   ( const _Ty_This &  that ) : m_contr ( that.m_contr ) { }
     _Ty_This &
@@ -336,10 +335,7 @@ public:
                 { return m_contr.insert(pos, val_x)  ; }
     template < class _InpIter >
     void        insert ( _InpIter  pos_a, _InpIter  pos_b )
-    {
-        _Ty_This    ctr_copy ( pos_a, pos_b, key_comp(), get_allocator() ) ;
-        m_contr.insert ( ctr_copy.begin() , ctr_copy.end() ) ;
-    }
+                { m_contr.insert_map ( pos_a , pos_b ) ; }
 
     void        clear ( )
                 { m_contr.clear() ; }
@@ -454,4 +450,12 @@ bool operator >= ( const M_MAP_BPT &  ctr_x ,
 _BPT_CLOSE
 
 #endif  //  _BPT_MAP_HPP
+
+
+
+
+
+
+
+
 

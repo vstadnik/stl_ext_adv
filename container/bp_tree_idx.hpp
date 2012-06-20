@@ -1,6 +1,6 @@
 /////////////////////////////////////////////////////////////////
 //
-//          Copyright Vadim Stadnik 2011.
+//          Copyright Vadim Stadnik 2011-2012.
 // Distributed under the Boost Software License, Version 1.0.
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
@@ -36,7 +36,7 @@ template
 class bp_tree_idx
 {
 public:
-    typedef bp_tree_idx < _Ty_Key , _Ty_Map , _Ty_Val , 
+    typedef bp_tree_idx < _Ty_Key , _Ty_Map , _Ty_Val ,
                           _KeyOfV , _MapOfV , _Pred   , _Alloc  >
                                                 _Ty_This        ;
     typedef _Ty_Key                             key_type        ;
@@ -166,9 +166,9 @@ public:
             { return valid_data() ? m_p_cont->_size_dt() : 0 ; }
         _NodeLightPtr       _end  ( )      const
             { return valid_data() ? m_p_cont->_external_end() : 0 ; }
-        _NodeLightPtr       _pointer ( )   const    { return m_ptr     ; }
-        difference_type     _index   ( )   const    { return m_index   ; }
-        const _Ty_This *    _container ( ) const    { return m_p_cont  ; }
+        _NodeLightPtr       _pointer ( )   const    { return m_ptr    ; }
+        difference_type     _index   ( )   const    { return m_index  ; }
+        const _Ty_This *    _container ( ) const    { return m_p_cont ; }
 
         bool _index_valid ( difference_type  ind ) const
         {
@@ -424,10 +424,11 @@ public:
                 insert ( const value_type &  elem_x ) ;
     iterator    insert ( iterator  pos , const value_type &  elem_x ) ;
     template <class _InpIter>
-    void        insert ( _InpIter  pos_a , _InpIter  pos_b )
-    {
-        while ( pos_a != pos_b )  { insert (*pos_a) ; ++pos_a ; }
-    }
+    void        insert_set ( _InpIter  pos_a , _InpIter  pos_b )
+                { _insert_iter_ordered ( pos_a , pos_b ) ; }
+    template <class _InpIter>
+    void        insert_map ( _InpIter  pos_a , _InpIter  pos_b )
+                { _insert_iter_ordered ( pos_a , pos_b ) ; }
 
     iterator    erase ( iterator         pos   ) ;
     iterator    erase ( iterator         pos_a ,
@@ -465,7 +466,7 @@ public:
     void                push_front    ( const_reference  val ) ;
     iterator            _insert_seqce ( iterator         pos ,
                                         const_reference  val ) ;
-    void                _insert_seqce_n
+    void                _insert_seqce_count
                                       ( iterator         pos ,
                                         size_type        cnt ,
                                         const_reference  val ) ;
@@ -621,6 +622,36 @@ protected:
                                    _Ty_This &       that    ,
                                    iterator         pos_a   ,
                                    iterator         pos_b   ) ;
+
+    template <class _InpIter>
+    void _insert_iter_ordered ( _InpIter  pos_a , _InpIter  pos_b )
+    {
+        if ( this->empty() || !m_multi )
+        {
+            while ( pos_a != pos_b )
+            {
+                insert (*pos_a) ;
+                ++pos_a ;
+            }
+        }
+        else
+        {
+            _Ty_This    ctr_copy ( m_k_comp , m_multi , m_ordered , m_allr_ty_val ) ;
+            while ( pos_a != pos_b )
+            {
+                ctr_copy . insert (*pos_a) ;
+                ++pos_a ;
+            }
+
+            const_iterator  cur = ctr_copy . begin() ;
+            const_iterator  end = ctr_copy . end  () ;
+            while ( cur != end )
+            {
+                this->insert ( *cur ) ;
+                ++cur ;
+            }
+        }
+    }
 
     template<class _InpIter>
     void _insert_seqce_impl ( iterator  pos, _InpIter  pos_a, _InpIter  pos_b )
@@ -1979,9 +2010,9 @@ BP_TREE_TY::_insert_seqce ( iterator  pos , const_reference  val )
 
 
 TEMPL_DECL
-void BP_TREE_TY::_insert_seqce_n ( iterator         pos ,
-                                   size_type        cnt ,
-                                   const_reference  val )
+void BP_TREE_TY::_insert_seqce_count ( iterator         pos ,
+                                       size_type        cnt ,
+                                       const_reference  val )
 {
     while ( cnt-- )
     {
@@ -2387,7 +2418,7 @@ void BP_TREE_TY::resize ( size_type  sz_new , const_reference  val )
 {
     if ( size() < sz_new )
     {
-        _insert_seqce_n ( end() , sz_new-size() , val ) ;
+        _insert_seqce_count ( end() , sz_new-size() , val ) ;
     }
     else if ( sz_new < size() )
     {

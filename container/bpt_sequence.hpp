@@ -1,6 +1,6 @@
 /////////////////////////////////////////////////////////////////
 //
-//          Copyright Vadim Stadnik 2011.
+//          Copyright Vadim Stadnik 2011-2012.
 // Distributed under the Boost Software License, Version 1.0.
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
@@ -32,6 +32,7 @@ class sequence
     typedef _BPTree < _K, _K, _K, GetSelf<_K>,
                       GetSelf<_K>, std::less<_K>, _A >
                                                         _BPTreeType     ;
+
 public:
     typedef sequence <_K, _A, _BPTree>                  _Ty_This        ;
     typedef _A                                          allocator_type  ;
@@ -58,7 +59,7 @@ public:
                const_reference         val =value_type() ,
                const allocator_type &  alr =allocator_type() ) :
         m_contr ( key_compare(), true, false, alr )
-        { m_contr._insert_seqce_n ( m_contr.begin(), sz, val ) ; }
+        { m_contr._insert_seqce_count ( m_contr.begin(), sz, val ) ; }
     template <class _InpIter>
     sequence ( _InpIter                pos_a ,
                _InpIter                pos_b ,
@@ -107,7 +108,7 @@ public:
     iterator    insert ( iterator  pos, const_reference  val )
                 { return m_contr._insert_seqce ( pos, val ) ; }
     void        insert ( iterator  pos, size_type  cnt, const_reference  val )
-                { m_contr._insert_seqce_n ( pos, cnt, val ) ; }
+                { m_contr._insert_seqce_count ( pos, cnt, val ) ; }
     template <class _InpIter>
     void        insert ( iterator  pos, _InpIter  pos_a, _InpIter  pos_b )
     {
@@ -144,7 +145,7 @@ public:
     void        assign ( size_type  cnt, const_reference  val )
     {
         m_contr.clear() ;
-        m_contr._insert_seqce_n( m_contr.begin(), cnt, val ) ;
+        m_contr._insert_seqce_count( m_contr.begin(), cnt, val ) ;
     }
     template<class _InpIter>
     void        assign (_InpIter  pos_a, _InpIter  pos_b )

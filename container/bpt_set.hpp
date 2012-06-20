@@ -1,6 +1,6 @@
 /////////////////////////////////////////////////////////////////
 //
-//          Copyright Vadim Stadnik 2011.
+//          Copyright Vadim Stadnik 2011-2012.
 // Distributed under the Boost Software License, Version 1.0.
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
@@ -30,7 +30,7 @@ template
 >
 class set
 {
-    typedef _BPTree < _K , _K , _K , GetSelf<_K> , GetSelf<_K> , _Pr , _A > 
+    typedef _BPTree < _K , _K , _K , GetSelf<_K> , GetSelf<_K> , _Pr , _A >
                                                         _BPTreeType     ;
 
 public:
@@ -65,7 +65,7 @@ public:
           const key_compare &    pred=key_compare()    ,
           const allocator_type & alr =allocator_type() ) :
         m_contr ( pred, false, true, alr )
-        { insert ( pos_a, pos_b ) ; }
+        { m_contr.insert_set ( pos_a, pos_b ) ; }
 
     set        ( const _Ty_This &  that ) : m_contr ( that.m_contr ) { }
     _Ty_This &
@@ -100,7 +100,7 @@ public:
                 { return m_contr.insert(pos, val_x) ; }
     template < class _InpIter >
     void        insert ( _InpIter  pos_a , _InpIter  pos_b )
-                { m_contr.insert(pos_a, pos_b) ; }
+                { m_contr.insert_set(pos_a, pos_b) ; }
 
     void      clear ( )
                     { m_contr.clear() ; }
@@ -231,7 +231,7 @@ template
 >
 class multiset
 {
-    typedef _BPTree < _K , _K , _K , GetSelf<_K> , GetSelf<_K> , _Pr , _A > 
+    typedef _BPTree < _K , _K , _K , GetSelf<_K> , GetSelf<_K> , _Pr , _A >
                                                         _BPTreeType     ;
 
 public:
@@ -266,7 +266,7 @@ public:
                const key_compare &     pred=key_compare()    ,
                const allocator_type &  alr =allocator_type() ) :
         m_contr ( pred, true, true, alr )
-        { m_contr.insert ( pos_a, pos_b ) ; }
+        { m_contr.insert_set ( pos_a, pos_b ) ; }
 
     multiset     ( const _Ty_This &  that ) : m_contr ( that.m_contr ) { }
     _Ty_This &
@@ -300,10 +300,7 @@ public:
                 { return m_contr.insert(pos, val_x) ; }
     template < class _InpIter >
     void        insert ( _InpIter  pos_a, _InpIter  pos_b )
-    {
-        _Ty_This    ctr_copy ( pos_a, pos_b, key_comp(), get_allocator() ) ;
-        m_contr.insert ( ctr_copy.begin(), ctr_copy.end() ) ;
-    }
+                { m_contr.insert_set ( pos_a , pos_b ) ; }
 
     void        clear ( )
                 { m_contr.clear() ; }
@@ -423,4 +420,12 @@ _BPT_CLOSE
 
 
 #endif  //  _BPT_SET_HPP
+
+
+
+
+
+
+
+
 

@@ -267,7 +267,9 @@
     make sure to insert into a container only valid elements, which do not cause a problem 
     like division by zero. The precision of the element type should be sufficient to avoid 
     overflow and underflow errors, and to reduce loss of accuracy of a user algorithm 
-    to a specified limit.
+    to a specified limit. For an example of this approach, see the file 
+    &quot;geometric_mean.cpp&quot;. This example demonstrates how the fast algorithm 
+    <code>accumulate()</code> can be applied to the calculation of the geometric mean value.     
     </p>
     <p>Since each update operation for a single element in a container with <i>N</i> elements 
     has maximum cost <i>O(log N)</i>, an increase in the performance of a user algorithm can 
@@ -333,7 +335,7 @@
 
   <p>Revised 
   <!--webbot bot="Timestamp" s-type="EDITED" s-format="%d %B, %Y" startspan -->
-  27 November, 2011<!--webbot bot="Timestamp" endspan i-checksum="38514" --></p>
+  03 December, 2011<!--webbot bot="Timestamp" endspan i-checksum="38514" --></p>
 
   <p><i>Copyright &copy; 2011</i> 
   <a href="mailto:vadimstdk@gmail.com"><i>Vadim Stadnik</i><br>(vadimstdk@gmail.com)</a>

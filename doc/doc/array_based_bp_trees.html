@@ -1,0 +1,616 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html>
+<head>
+  <meta http-equiv="Content-Language" content="en-us">
+  <meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+  <link rel="stylesheet" type="text/css" href="../../../boost.css">
+
+  <title>Container_bptree - array based B+ trees</title>
+</head>
+
+<body link="#0000FF" vlink="#800080">
+  <table border="0" cellpadding="7" cellspacing="0" width="100%" summary=
+  "header">
+    <tr>
+      <td valign="top" width="300">
+        <h3><a href="../../../index.htm"><img height="86" width="277" alt=
+        "C++ Boost" src="images/boost.png" border="0"></a></h3>
+      </td>
+
+      <td valign="top">
+        <h1 align="center">Container_bptree</h1>
+
+        <h2 align="center">Array based B+ trees</h2>
+      </td>
+    </tr>
+  </table>
+  
+  <hr>  
+  <div align="right">
+    <a href="performance.html"><img src="images/prev.png" border=0 alt="Prev"></a>
+    <a href="../index.html"><img src="images/up.png" border=0 alt="Up"></a>
+    <a href="../index.html"><img src="images/home.png" border=0 alt="Home"></a>
+    <a href="bibliography.html"><img src="images/next.png" border=0 alt="Next"></a>    
+  </div> 
+  
+  
+    <h3>Introduction
+    </h3>  
+  
+    <p>All variants of B+ trees discussed in previous sections are dynamically allocated. 
+    The implementation of these trees requires no pointer arithmetic. To some extent this is 
+    an advantage, since these trees do not place a strict restriction on a model of a computational 
+    machine. These variants of augmented B+ trees can be implemented not only in C++, but also 
+    in any other programming language that supports pointers. 
+    </p>
+    
+    <p>On the other hand, it is well known that containers using the pointer arithmetic 
+    can provide significantly better performance of some operations compared to containers 
+    based on dynamically allocated linked data structures. In particular, for this reason 
+    the default STL sequence container is array based <code>std::vector</code>, but not 
+    dynamically allocated <code>std::list</code>. The section 
+    <a href="performance.html">Performance of basic algorithms</a> includes values of running 
+    times of several basic member functions of these STL containers.
+    </p>
+    
+    <p>The superiority of array based containers raises the interesting question if it is possible 
+    to develop variants of augmented B+ trees, which take advantage of the high efficiency of 
+    the pointer arithmetic. The performance of new B+ trees can be compared with that of previously 
+    developed variants of dynamically allocated B+ trees. It is also necessary to ensure 
+    that the benefits of new STL variants of containers and iterators do not come at the expense of 
+    generality and portability.
+    </p>
+
+    <h3>Transformation of dynamically allocated into array based B+ trees
+    </h3>  
+    
+    <p>The array based variants of augmented B+ trees can be developed from scratch using 
+    the similarity with external search trees. In order to reduce the development time, 
+    this project applies a different approach. The new variants of array based B+ trees are 
+    obtained by a relatively simple adaption of already developed dynamically allocated B+ trees. 
+    In particular, an array based B+ tree of the class <code>bp_tree_array</code> represents 
+    an equivalent of a dynamically allocated B+ tree of the class <code>bp_tree_idx</code>. 
+    </p>
+    
+    <p>The transformation of dynamically allocated into array based B+ trees has been mainly 
+    achieved through a modification of the structure of external nodes of the deepest level. 
+    Every group of external child nodes is replaced by an array storing the same container elements. 
+    This is why in a new B+ tree a linked list of nodes of the deepest level is represented by 
+    a list of arrays. The structure of all levels of internal nodes remains unchanged. 
+    The following figure shows the structure of indices of an array based B+ tree.
+    </p>
+    
+    </p>
+    <p>
+    <img alt="" src="images/figure_2.png" style="height: 500px; width: 870px" />    
+    </p>
+    <table class="style1">
+        <tr>
+            <td class="style2">
+            </td>
+            <td>
+                <b>Figure 2.</b> An array based B+ tree with the minimum degree <i>t</i>=2 and 
+                an array storing the same elements.                 
+                <br />
+                The deepest level of the B+ tree implements a partition of the array into 
+                a list of sub-arrays. Values in internal nodes of the B+ tree represent counters of 
+                elements. Empty cells in sub-arrays of external nodes do not store container elements. 
+                They are reserved for new elements to be inserted into the tree. The dashed lines 
+                connect first elements in sub-arrays of external nodes of the tree with corresponding 
+                elements in the array. 
+            </td>
+        </tr>
+    </table>
+    
+    <p>The modification of the deepest level is based on the following facts. One group of 
+    external child nodes of a dynamically allocated B+ tree represents a doubly linked list. 
+    The links to previous and next nodes support constant time access to nearest elements only. 
+    The pointer arithmetic provides the advantage of constant time access to any element inside an array. 
+    In this regard, an array of nodes with container elements supersedes the doubly linked list of nodes. 
+    This fact has been used in this project in order to replace every group of external child nodes with 
+    an array of light nodes. The pointer arithmetic, however, cannot be used when an algorithm requires 
+    access to a distant container element from another array. If this is the case, the required element 
+    is delivered by an efficient search algorithm using the structure of internal nodes. 
+    </p>
+    
+    <p>To some extent, this transformation into an array based B+ tree is incomplete, since 
+    the obtained data structure is a combination of a list of arrays of external nodes and 
+    a dynamically allocated B-tree of internal nodes. Nevertheless, as it will be seen later, 
+    even this partial transformation of the augmented B+ trees is sufficient to significantly 
+    improve performance of many container operations. 
+    </p>
+
+    <h3>Benefits of pointer arithmetic
+    </h3>  
+    
+    <p>The use of the pointer arithmetic provides a number of major benefits for the performance 
+    of the new variants of augmented B+ trees against previously developed dynamically allocated trees. 
+    The pointer arithmetic provides the most efficient constant time access to any element inside 
+    an array and the possibility to maximize spatial locality of reference. 
+    </p>
+
+    <p>The fact that an array of nodes can replace a linked list of nodes makes links to previous 
+    and next nodes redundant and, thus, allows for saving space required for array based B+ trees. 
+    The reduced space requirement can give a noticeable performance gain for algorithms processing 
+    small size objects. 
+    </p>
+
+    <p>In addition to this, the pointer arithmetic can be used to store consecutive elements of 
+    a container in a contiguous region of memory. This method minimizes the number of cache misses 
+    and maximizes performance of algorithms using sequential processing. 
+    </p>
+
+    <p>For these reasons, the array based B+ trees provide much better spatial localities of reference 
+    not achievable in dynamically allocated variants of B+ trees, including those using custom allocators. 
+    </p>
+
+    <h3>Processing by sub-arrays
+    </h3>  
+
+    <p>Copy semantics algorithms of dynamically allocated B+ trees normally process <i>N</i> elements 
+    applying an operation <i>N</i> times. For example, in order to add <i>N</i> elements to the tail of 
+    a sequence, the member function <code>push_back()</code> is called <i>N</i> times.
+    </p>
+    
+    <p>The efficiency and generality of the pointer arithmetic enables the development of new methods 
+    with improved performance for large numbers of elements not possible with dynamically allocated 
+    data structures. The idea of this optimization is to replace multiple processing of single elements 
+    by single processing of an array with the same elements. In particular, for the example mentioned above, 
+    instead of multiple calls of the <code>push_back()</code> function for every single element, 
+    it is more efficient to create and fill an array of elements, then create its parent node and 
+    push back the node to the deepest internal level of a B+ tree.
+    </p>
+
+    <p>The first four rows of the next table show values of running times in milliseconds of the 
+    <code>push_back()</code> function for two standard containers and for two sequences based on B+ trees, 
+    the test function <code>PerformanceTest::test_push_back_fill()</code>, the file &quot;perform_tests.hpp&quot;. 
+    The last row shows data for the new method that inserts sub-arrays into a B+ tree of the class 
+    <code>bp_tree_array</code>, the test function <code>PerformanceTest::test_insert_fill()</code>. 
+    </p>
+
+    <table border=1 cellpadding="8" frame="box">    
+    <caption><code>push_back()</code> <i>N</i> elements</caption>
+    <tr>
+        <td><i>N</i></td>
+        <td align="right">1,000</td>
+        <td align="right">10,000</td>
+        <td align="right">100,000</td>
+        <td align="right">1,000,000</td>
+    </tr>
+    <tr>
+        <td><code>std::vector</code></td>
+        <td align="right">0.02</td>
+        <td align="right">0.22</td>
+        <td align="right">2.2</td>
+        <td align="right">24.0</td>
+    </tr>
+    <tr>
+        <td><code>std::list</code></td>
+        <td align="right">0.22</td>
+        <td align="right">2.5</td>
+        <td align="right">25.0</td>
+        <td align="right">250.0</td>
+    </tr>
+    <tr>
+        <td><code>bp_tree_idx</code></td>
+        <td align="right">0.22</td>
+        <td align="right">3.0</td>
+        <td align="right">33.0</td>
+        <td align="right">330.0</td>
+    </tr>
+    <tr>
+        <td><code>bp_tree_array</code></td>
+        <td align="right">0.04</td>
+        <td align="right">0.4</td>
+        <td align="right">4.8</td>
+        <td align="right">90.0</td>
+    </tr>
+    <tr>
+        <td><code>push_back_sub_arrays</code></td>
+        <td align="right">0.04</td>
+        <td align="right">0.24</td>
+        <td align="right">2.1</td>
+        <td align="right">29.0</td>
+    </tr>
+    </table>
+  <br />  
+
+    <p>These data demonstrate the effect of methods that improve performance of new data structures. 
+    The improved locality of reference increases the efficiency of array based B+ trees approximately 
+    by 4 times compared to dynamically allocated trees. The method of insertion of container elements 
+    using sub-arrays provides an additional improvement factor of about 2.5. This method is almost as 
+    efficient as the <code>push_back()</code> function of <code>std::vector</code>.
+    </p>
+
+    <p>These measurements also show that the member function <code>push_back()</code> of a sequence 
+    based on an array based B+ tree has better performance than that of <code>std::list</code>. 
+    In theory, the result is unexpected, since the computational cost of this function is constant for 
+    <code>std::list</code> and is logarithmic for an array based B+ tree. 
+    </p>
+
+    <p>This interesting fact is a demonstration of the inaccuracy of asymptotical estimates for complex 
+    computer systems using virtual memory management. It also suggests that a well-designed library 
+    should provide a variety of data structures supporting one interface, such as STL, to give users 
+    the choice of the most efficient basic data structure for a specific solution. 
+    </p>
+
+    <p>The following test compares the efficiency of the <code>sequence</code> member function 
+    <code>unique()</code> of two containers using an array based B+ tree of the class <code>bp_tree_array</code> 
+    and a dynamically allocated B+ tree of the class <code>bp_tree_idx</code>. The improvement factor 
+    for this test varies between 5 and 30. The table shows values of running times in milliseconds 
+    against the number of elements processed by the member function <code>unique()</code>, the test 
+    function <code>PerformanceTest::test_unique()</code>, the file &quot;perform_tests.hpp&quot;. 
+    </p>
+
+    <table border=1 cellpadding="8" frame="box">    
+    <caption><code>sequence::unique()</code> applied to <i>N</i> elements</caption>
+    <tr>
+        <td><i>N</i></td>
+        <td align="right">2,000</td>
+        <td align="right">20,000</td>
+        <td align="right">200,000</td>
+        <td align="right">2,000,000</td>
+    </tr>
+    <tr>
+        <td><code>bp_tree_array</code></td>
+        <td align="right">0.05</td>
+        <td align="right">0.19</td>
+        <td align="right">1.9</td>
+        <td align="right">20.0</td>
+    </tr>
+    <tr>
+        <td><code>bp_tree_idx</code></td>
+        <td align="right">0.27</td>
+        <td align="right">2.8</td>
+        <td align="right">51.0</td>
+        <td align="right">630.0</td>
+    </tr>
+    </table>
+  <br />  
+
+    <p>In order to achieve the best performance of user algorithms, the new B+ trees support two 
+    minimum degree parameters: one for internal dynamically allocated nodes <code>_min_degree_int()</code> 
+    and one for external nodes <code>_min_degree_ext()</code> stored in arrays of the deepest level of a tree. 
+    The higher efficiency of the pointer arithmetic, the greater the value of the minimum degree can be set 
+    for an external level. This parameter increases the capacity of every array, reduces the total 
+    number of internal nodes, saves space and increases locality of reference. This variation can 
+    improve performance of search methods and sequential processing. However, since a single update 
+    operation for a sub-array has linear running time, the increase can be costly for the overall 
+    performance of complex algorithms. These facts mean that values of the minimum degree parameters 
+    that deliver the best efficiency may vary from algorithm to algorithm. It is also possible that 
+    the optimal values of these parameters are system specific. If required, these properties of 
+    the array based B+ trees can be used to develop the most efficient specialized solutions. 
+    </p>
+
+
+    <h3>Fast conversion to <code>std::vector</code> 
+    </h3>  
+
+    <p>The high performance methods of the pointer arithmetic have been used in many member functions of 
+    the array based B+ trees, including such important special functions as constructors and destructors. 
+    The reduced cost of construction and destruction of new containers enables a useful performance 
+    optimization of complex algorithms processing large numbers of elements. It is well known that 
+    in some algorithms <code>std::vector</code> can outperform any other container, including a container 
+    based on a B+ tree. If this is the case, then a complex algorithm can take advantage of the fast 
+    conversions between an array based B+ tree and <code>std::vector</code>, and run the most efficient 
+    variant of a sub-algorithm using <code>std::vector</code>. 
+    </p>
+
+    <p>The benefit of the method of the conversion to <code>std::vector</code> depends on the specific 
+    details of a user algorithm. In this section, it is illustrated for two sort algorithms supported by 
+    the array based B+ trees.
+    </p>
+
+    <p>The <code>sort_tree()</code> function of the class <code>bp_tree_array</code> implements sorting 
+    through single <code>erase()</code> of original elements of a sequence and <code>insert()</code> of these 
+    elements into an ordered container. The <code>sort_vector()</code> function converts a sequence based on 
+    an array based B+ tree to <code>std::vector</code>, applies to this temporary container 
+    <code>std::sort()</code> and then refills the tree based sequence with ordered elements.
+    </p>
+
+    <p>This table shows values of running times in milliseconds of the two different implementations of 
+    the sort functions, the test function <code>PerformanceTest::test_sort()</code>, 
+    the file &quot;perform_tests.hpp&quot;. 
+    </p>
+
+    <table border=1 cellpadding="8" frame="box">    
+    <caption><code>sort()</code> <i>N</i> elements</caption>
+    <tr>
+        <td><i>N</i></td>
+        <td align="right">1,000</td>
+        <td align="right">10,000</td>
+        <td align="right">100,000</td>
+        <td align="right">1,000,000</td>
+    </tr>
+    <tr>
+        <td><code>sort_tree()</code></td>
+        <td align="right">1.0</td>
+        <td align="right">11.0</td>
+        <td align="right">120.0</td>
+        <td align="right">1700.0</td>
+    </tr>
+    <tr>
+        <td><code>sort_vector()</code></td>
+        <td align="right">0.12</td>
+        <td align="right">1.3</td>
+        <td align="right">17.0</td>
+        <td align="right">200.0</td>
+    </tr>
+    </table>
+  <br />  
+
+    <p>The high efficiency of <code>std::vector</code> makes the <code>sort_vector()</code> function about 
+    eight times faster despite two additional conversion operations between different types of containers. 
+    </p>
+    
+
+    <h3>Array based B+ trees as enhanced allocators 
+    </h3>  
+    
+    <p>The array based B+ trees of this project have a number of properties that make them similar to 
+    pool allocators [<a href="bibliography.html">1</a>]. This type of C++ allocator is frequently used to 
+    improve performance of dynamically allocated data structures, such as linked lists or red black trees.
+    </p>
+
+    <p>For the discussion in this section, it is important to note that a pool allocator represents 
+    a simple linked list of memory blocks. An array based B+ tree has basically the same structure of 
+    the deepest level when the number of container elements is relatively small. The tree constructs and 
+    stores arrays of light nodes with container elements in contiguous regions of large memory blocks. 
+    The memory size of every light node is fixed. The arrays are connected through internal parent nodes of 
+    the deepest level. As a user algorithm adds new elements, the complexity of the structure of the B+ tree 
+    increases. It constructs new levels of internal nodes in order to deliver the best possible performance 
+    of container operations. 
+    </p>
+
+    <p>The dynamics of memory blocks and elements stored in an array based B+ tree and in a pool allocator 
+    are identical. A B+ tree allocates large memory blocks and uses them to control the lifetime of container 
+    elements. The elements are created and destroyed in the memory space owned by the tree. The lifetime of 
+    a memory block on average is significantly greater than that of a container element. If the total number of 
+    elements in a memory block does not exceed its capacity limit, the block can be used to construct and 
+    destroy an unlimited number of container elements before the block is freed. 
+    </p>
+
+    <p>The array based B+ trees implement customized allocations and deallocations of single container elements, 
+    which are more efficient than those provided by general C++ operators <code>new</code> and <code>delete</code>. 
+    At the same time, these trees minimize the frequency of system allocations and deallocations of memory blocks 
+    that store arrays of nodes with container elements. This method reduces the total cost of memory management 
+    for container operations and improves performance of user algorithms that insert and erase large numbers of 
+    elements. 
+    </p>
+
+    <p>Because of these structural and dynamical properties, an array based B+ tree represents an enhanced 
+    and optimized allocator. Alternatively, an array based B+ tree can be regarded as a data structure that 
+    implements functionality of an allocator using its own memory space. Regardless of the terminology, 
+    the level of integration of memory management in the array based B+ trees is higher than in dynamically 
+    allocated variants of these trees that conform to the STL approach for containers and allocators. 
+    </p>
+
+    <p>There is, however, one important difference in the memory management between an array based B+ tree 
+    and a pool allocator. An allocator designed to work with a dynamically allocated data structure normally 
+    stores a node with a container element in a memory region that is not changed for the whole lifetime of 
+    the node. This approach improves the safety of algorithms using pointer based iterators. The current 
+    implementation of the array based B+ trees does not support this approach. These trees are optimized 
+    for the best performance through the contiguous arrangement of container elements in memory blocks. 
+    For this reason, update operations can move container elements inside memory blocks to avoid gaps and 
+    minimize memory fragmentation. 
+    </p>
+
+
+    <h3>Efficient splice methods extending move semantics 
+    </h3>  
+
+    <p>Dynamically allocated doubly linked lists provide various efficient splice operations through 
+    the change of the connectivity between a few nodes only. The <code>splice()</code> functions of 
+    <code>std::list</code> have constant computational cost except for the one function 
+    </p>
+
+    <pre>
+    void splice(iterator pos, list& x, iterator first, iterator last);
+</pre>
+
+    <p>which has linear cost. The relinking operations are not responsible for the high cost of this 
+    function. The inefficiency is caused by counting of inserted and removed elements and updating sizes 
+    of modified lists. This implementation complies to the C++ standard requirement that the 
+    <code>size()</code> function of <code>std::list</code> has constant cost. 
+    </p>
+
+    <p>The array based B+ trees support the <code>splice()</code> functions conforming to the C++ standard 
+    with an important difference that all of them have logarithmic computational cost. These functions 
+    are a bit less efficient than the constant cost <code>splice()</code> functions of <code>std::list</code>. 
+    However, unlike linked lists, the array based B+ trees do not have the problem of linear inefficiency, 
+    since they count the number of moved elements in constant time using random access iterators. 
+    </p>
+
+    <p>The STL <code>splice()</code> functions of new B+ trees have been implemented through algorithms 
+    that join and split trees. The implementation of these algorithms takes advantage of the relatively 
+    simple level linked structure of the augmented B+ trees. Every level of these trees represents 
+    a doubly linked list. A structural modification of join or split is first applied to every horizontal 
+    list of the tree. After that, another algorithm tests every level of the B+ tree and, if required, 
+    restores the local balance of groups of child nodes that are adjacent to a node of either the join or 
+    cut operation. Since these algorithms are applied to all levels of a B+ tree, the basic implementation 
+    functions that join and split trees have logarithmic computational cost. 
+    </p>
+
+    <p>For doubly linked lists, the efficient splice operations are possible only if all involved containers 
+    store their elements in the same memory space. If this is not the case, user algorithms have only one 
+    method of inserting elements into a destination container and erasing these elements from a source 
+    container. This is a less efficient method, since it has linear cost. Allocator per container class 
+    represents the most practical memory management method for STL containers supporting the efficient splice 
+    operations. An array based B+ tree implements memory management methods not only for container elements 
+    and nodes, but also for large blocks of uninitialized memory. The allocation and deallocation of these 
+    blocks can use a wide variety of methods, from custom allocators to standard methods, such as C++ operators 
+    <code>new[]</code> and <code>delete[] </code> or C functions <code>malloc()</code> and <code>free()</code>.
+    </p>
+
+    <p>The <code>splice()</code> functions of the augmented B+ trees belong to the group of functions of 
+    efficient structural modifications. They offer an important and fully general extension of STL move 
+    semantics, since they can move any range of consecutive elements with logarithmic computational cost 
+    in the worst case. This level of generality and efficiency is not achievable with move semantics based on 
+    <code>std::list</code>. Its <code>splice()</code> function for an arbitrary range of consecutive elements 
+    has linear running time, which is the same as that of copy semantics. 
+    </p>
+
+    <p>The <code>splice()</code> and <code>swap()</code> functions of the array based B+ trees support 
+    move semantics only. Copy semantics is not implemented in these functions, since it is inefficient. 
+    In addition to this, any function with two different semantics can confuse users. A programming solution 
+    that is safe under the assumption of copy semantics can have undefined behavior with move semantics 
+    due to destructive modification of source objects. 
+    </p>
+    
+   
+    <h3>Efficient split with move semantics    
+    </h3>  
+
+    <p>The STL interface of sequence containers does not include a function to directly and efficiently 
+    split sequences using move semantics. These functions are important for optimization of divide and 
+    conquer algorithms. They are also useful in processing of strings and texts. 
+    </p>
+
+    <p>Since the number of elements before and after splice operations remains the same, the result of 
+    a split operation can be easily obtained using an empty sequence. The following pseudo code shows 
+    how to split a sequence using the efficient <code>splice()</code> function with move semantics. 
+    </p>
+
+    <pre>
+    Sequence              seqce_a ;
+    Sequence              seqce_b ;
+    ...
+
+    // seqce_a contains N elements 
+    // seqce_b is empty 
+    Sequence::iterator    mid_a = seqce_a.begin() + N/2 ;  
+    Sequence::iterator    end_a = seqce_a.end() ;
+    Sequence::iterator    end_b = seqce_b.end() ;
+
+    seqce_b . splice ( end_b, seqce_a, mid_a, end_a ) ; 
+
+    // seqce_a contains first N/2 elements of original sequence
+    // seqce_b contains last  N/2 elements of original sequence
+</pre>
+
+    <p>The <code>splice()</code> is a member function of a sequence only. It involves a join 
+    operation that does not preserve the order of container elements. For this reason both join 
+    and splice operations cannot be applied to associative containers in the general case. 
+    On the other hand, the split operation does not change the order of elements in obtained 
+    containers. This fact implies that the efficient split operations are safe in algorithms 
+    using both sequences and associative containers.
+    </p>
+
+    <p>The efficient <code>splice()</code> and <code>split()</code> functions have been already used 
+    at the implementation level of the array based B+ trees to improve performance of interface member 
+    functions of containers. The use of these functions will be most likely extended in future versions 
+    of array based B+ trees and STL variants of containers. 
+    </p>
+
+
+    <h3>Invalidation of random access iterators 
+    </h3>  
+
+    <p>The previously developed variants of dynamically allocated B+ trees provide interface functions 
+    to deal with the most typical problems of the invalidation of random access iterators 
+    <a href="iterators.html">Random access iterators</a>. These functions are not required by 
+    the C++ standard, but they are efficient and very helpful in practical applications. 
+    </p>
+
+    <p>Unfortunately, in the array based B+ trees, the support of these functions is quite limited 
+    and, thus, has been dropped. In addition to general and fundamental problems, random access 
+    iterators of array based B+ trees have a number of specific problems. The main disadvantage of 
+    the pointer arithmetic is the fact that a pointer to a container element is not as safe after 
+    update operations as in dynamically allocated data structures. 
+    </p>
+
+    <p>The current implementation of array based B+ trees stores consecutive container elements 
+    in contiguous memory regions. Thus, update operations can move container elements inside a memory 
+    block in order to avoid gaps. In addition to this, the implementation functions can split and merge 
+    memory blocks. A split operation creates a new block and reallocates a group of container elements 
+    into the new block. A merge operation reallocates a group of container elements from one block 
+    into another and then deletes the first block. In contrast to dynamically allocated B+ trees, 
+    these operations make a pointer to an element unsafe not only for <code>erase()</code>, 
+    but also for <code>insert()</code> functions. 
+    </p>
+
+    <p>One of the most complex and non-trivial cases, in which to find and fix the problem, is 
+    the following one. A container returns a memory block to a system and later obtains the same block 
+    from the system. In this case, a pointer with an address from this block at first becomes invalid 
+    and then valid again. However, it is valid only at the implementation level of a programming solution. 
+    The problem with this pointer is that in the end it points most likely to a new container element. 
+    In the general case, a pointer of an iterator cannot be used to detect the invalidation problem 
+    and re-store a valid state of the iterator. 
+    </p>
+
+    <p>A pointer based iterator is often used in algorithms as a simple and low cost ID of a container 
+    element supported by a system. Due the effect of <code>erase()</code> functions, this method of 
+    element identification is not perfect not only for array based, but also for dynamically allocated 
+    data structures <a href="iterators.html">Random access iterators</a>. The main problem of pointer 
+    based solutions comes from the fact that a pointer value is not under the control of a user algorithm, 
+    but is under the control of a system. For the best possible reliability, these solutions should 
+    implement application specific methods of element identification. 
+    </p>
+
+    <p>STL variants of containers enable programming solutions to take advantage of a general mathematical 
+    concept of a sequence. In contrast to a pointer, an index of an iterator is system independent, 
+    since it represents a well defined mathematical object. This is why an index to an element is safe 
+    to use in any user algorithm with the only restriction of being in a valid range. The array based 
+    B+ trees implement mapping of an index to a container element into a system specific pointer to a node 
+    storing the element. This is the same method that has been used for iterators of dynamically allocated 
+    B+ trees.
+    </p>
+
+
+    <h3>Conclusion
+    </h3>  
+
+    <p>One of the key differences between dynamically allocated and array based B+ trees of this project 
+    can be briefly formulated as follows. Dynamically allocated data structures require a pointer machine 
+    and provide efficient sequential and random access to container elements. In some aspect, these 
+    data structures implement the pointer arithmetic. Array based B+ trees use the pointer arithmetic 
+    provided by a system.
+    </p>
+
+    <p>The array based B+ trees implement a general and portable partition of an array into a list of 
+    sub-arrays connected to a B-tree. These data structures take advantage of the pointer arithmetic 
+    and deliver significantly better performance for many container operations against equivalent variants of 
+    dynamically allocated trees. 
+    </p>
+
+    <p>These trees maximize locality of reference by storing consecutive container elements in contiguous 
+    memory regions, minimizing the use of space and taking control of the lifetime of the elements 
+    in memory space owned by a tree. These data structures apply the method of sub-array processing 
+    instead of less efficient processing by single elements and offer the advantage of the fast conversion to 
+    <code>std::vector</code>. The array based B+ trees extend move semantics for STL containers by providing 
+    efficient splice and split methods to insert and remove any range of consecutive elements. However, 
+    as with many array based data structures, the performance benefit comes at the expense of the 
+    invalidation of random access iterators by update operations. 
+    </p>
+
+  
+  <hr>
+
+  <p><a href="http://validator.w3.org/check?uri=referer"><img border="0" src=
+  "images/valid-html401.png" alt="Valid HTML 4.01 Transitional"
+  height="31" width="88"></a></p>
+
+  <p>Revised 
+  <!--webbot bot="Timestamp" s-type="EDITED" s-format="%d %B, %Y" startspan -->
+  24 June, 2012<!--webbot bot="Timestamp" endspan i-checksum="38514" --></p>
+
+  <p><i>Copyright &copy; 2012</i> 
+  <a href="mailto:vadimstdk@gmail.com"><i>Vadim Stadnik</i><br>(vadimstdk@gmail.com)</a>
+  </p>
+
+  <p><i>Distributed under the Boost Software License, Version 1.0. (See
+  accompanying file <a href="images/LICENSE_1_0.txt">LICENSE_1_0.txt</a> or
+  copy at <a href=
+  "http://www.boost.org/LICENSE_1_0.txt">http://www.boost.org/LICENSE_1_0.txt</a>)</i></p>
+  
+  <hr>  
+  <div align="right">
+    <a href="performance.html"><img src="images/prev.png" border=0 alt="Prev"></a>
+    <a href="../index.html"><img src="images/up.png" border=0 alt="Up"></a>
+    <a href="../index.html"><img src="images/home.png" border=0 alt="Home"></a>
+    <a href="bibliography.html"><img src="images/next.png" border=0 alt="Next"></a>    
+  </div> 
+  
+</body>
+</html>

@@ -1,6 +1,6 @@
 /////////////////////////////////////////////////////////////////
 //
-//          Copyright Vadim Stadnik 2011.
+//          Copyright Vadim Stadnik 2011-2012.
 // Distributed under the Boost Software License, Version 1.0.
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
@@ -270,19 +270,6 @@ namespace test_bpt
             BOOST_ERROR ( "\n  !: ERROR splice method ;\n" ) ;
         if ( contr_b.size() != ( sz_test - sz_test/2 ) )
             BOOST_ERROR ( "\n  !: ERROR splice method ;\n" ) ;
-
-        if ( it_a0 . valid_mapping ( ) )
-            BOOST_ERROR ( "\n  !: ERROR iterator state ;\n" ) ;
-
-        it_a0 . update_index ( ) ;
-        if ( ! it_a0 . valid_mapping ( ) )
-            BOOST_ERROR ( "\n  !: ERROR iterator state ;\n" ) ;
-
-        if ( ! it_a1 . valid_mapping ( ) )
-            BOOST_ERROR ( "\n  !: ERROR iterator state ;\n" ) ;
-        if ( it_a1 != it_a0 )
-            BOOST_ERROR ( "\n  !: ERROR iterator state ;\n" ) ;
-
         if ( size_t ( it_a1 - contr_a.begin() ) != ( sz_test/4 + sz_test/2 ) )
             BOOST_ERROR ( "\n  !: ERROR iterator state ;\n" ) ;
     }
@@ -635,5 +622,12 @@ namespace test_bpt
 
 
 #endif  //  _TEST_SEQUENCE_HPP
+
+
+
+
+
+
+
 
 

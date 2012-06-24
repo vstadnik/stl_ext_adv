@@ -1,6 +1,6 @@
 /////////////////////////////////////////////////////////////////
 //
-//          Copyright Vadim Stadnik 2011.
+//          Copyright Vadim Stadnik 2011-2012.
 // Distributed under the Boost Software License, Version 1.0.
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
@@ -109,7 +109,7 @@ namespace test_bpt
         std::vector<size_t>     vec_rnd ;
         fill_rand ( vec_rnd , n_fill , n_dupl , 1 ) ;
 
-        std::vector< std::pair<size_t, size_t> >  vec_map ;
+        std::vector<std::pair<size_t, size_t> >  vec_map ;
         {
             const size_t  sz = vec_rnd . size ( ) ;
             for ( size_t  j  = 0 ; j < sz ; ++j )
@@ -127,5 +127,12 @@ namespace test_bpt
 
 
 #endif  //  _TEST_HELPERS_HPP
+
+
+
+
+
+
+
 
 

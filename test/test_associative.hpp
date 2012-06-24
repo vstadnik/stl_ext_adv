@@ -1,6 +1,6 @@
 /////////////////////////////////////////////////////////////////
 //
-//          Copyright Vadim Stadnik 2011.
+//          Copyright Vadim Stadnik 2011-2012.
 // Distributed under the Boost Software License, Version 1.0.
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
@@ -44,6 +44,7 @@ namespace test_bpt
         _Contr      ctr_copy ( contr ) ;
         if ( ctr_copy.size() != contr.size() )
             BOOST_ERROR ( "\n  !: ERROR constructor ;\n" ) ;
+
 
         typename _Contr::allocator_type  alr  = contr.get_allocator() ;
         typename _Contr::key_compare     pred = contr.key_comp() ;
@@ -604,5 +605,12 @@ namespace test_bpt
 
 
 #endif  //  _TEST_ASSOCIATIVE_HPP
+
+
+
+
+
+
+
 
 
